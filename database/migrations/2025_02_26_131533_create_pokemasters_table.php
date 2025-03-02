@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('password', 60);
             $table->string('title', 30);
             $table->integer('xp');
+            $table->string('profile', 60);
         });
     }
 

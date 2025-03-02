@@ -17,8 +17,9 @@ return new class extends Migration
             $table->integer('nbPokemon');
             $table->integer('nbPokemonMythic');
             $table->integer('nbPokemonLeg');
-            $table->integer('idPokemaster')->unique();
-            $table->integer('idPokemon')->unique();;
+            $table->integer('nbCards');
+            $table->foreignId('pokemaster_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('pokemon_id')->constrained('pokemon')->onDelete('cascade');
         });
     }
 

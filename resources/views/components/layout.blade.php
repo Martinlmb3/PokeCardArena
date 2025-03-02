@@ -17,17 +17,15 @@
         <div class="flex items-center">
             <div class="shrink-0">
             <a href="/" class="hover:opacity-75 transition-opacity duration-150">
-                <img class="size-15" src="pokécard-logo.png" alt="pokécard-logo">
+                <img class="size-15" src="{{ asset('images/logos/pokécard-logo.png') }}" alt="pokécard-logo">
             </a>
             </div>
             <div class="hidden md:block">
             <div class="ml-10 flex items-baseline space-x-4">
                 <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-                <a href="#" class="rounded-md bg-red-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Pokédex</a>
-                <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-red-900 text-white no-underline">Pokémon Center</a>
-                <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-red-900 text-white no-underline">My Pokémon</a>
-                <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-red-900 text-white no-underline">Calendar</a>
-                <a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-red-900 text-white no-underline">Reports</a>
+                <a href="" class="rounded-md bg-red-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">Pokédex</a>
+                <a href="" class="rounded-md px-3 py-2 text-sm font-medium hover:bg-red-900 text-white no-underline">Pokémon Center</a>
+                <a href="" class="rounded-md px-3 py-2 text-sm font-medium hover:bg-red-900 text-white no-underline">My Pokémon</a>
             </div>
             </div>
         </div>
@@ -39,7 +37,7 @@
                 <button type="button" class="relative flex max-w-xs items-center rounded-full bg-red-800 text-sm focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-hidden" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
                     <span class="absolute -inset-1.5"></span>
                     <span class="sr-only">Open user menu</span>
-<!--Photo du User--> <img class="size-8 rounded-full" src="/pp.png" alt="">
+<!--Photo du User--> <img class="size-8 rounded-full" src="{{ asset('images/profiles/pp.png') }}" alt="">
                 </button>
                 </div>
                 <!--
@@ -82,17 +80,15 @@
     <div class="md:hidden" id="mobile-menu">
         <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
         <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-        <a href="#" class="block rounded-md bg-red-900 px-3 py-2 text-base font-medium text-white" aria-current="page">Pokédex</a>
-        <a href="#" class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-red-900 text-white no-underline ">My Pokémon</a>
-        <a href="#" class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-red-900 text-white">Pokémon Center</a>
-        <a href="#" class="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-red-900 text-white">Log Out</a>
+        <a href="pokeView/pokedex" class="block rounded-md bg-red-900 px-3 py-2 text-base font-medium text-white" aria-current="page">Pokédex</a>
+        <a href="pokeView/myPokemon" class="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white no-underline ">My Pokémon</a>
+        <a href="pokeView/pokemonCenter" class="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white">Pokémon Center</a>
+        <a href="pokeView/logout" class="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white">Log Out</a>
         </div>
         </div>
     </nav>
     </header>
-    <main class="bg-gray-200 p-5">
-        <!------------------------Content---------------------------------------->
-    </main>
+    {{ $slot }}
 </div>
 <footer class="block bottom-0 w-full bg-white" style="color: #6c757d;">
     <div class="max-w-7xl mx-auto px-4 py-2"> <!-- Added padding -->

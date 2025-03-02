@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->string('image', 120);
-            $table->string('categorie', 30)->unique();
+            $table->string('type', 30)->unique();
             $table->boolean('isMythical');
-            $table->boolean('isPokedex');
-            $table->date('obtainingDate');
+            $table->boolean('isLegendary');
+            $table->date('capture_at');
         });
     }
 
