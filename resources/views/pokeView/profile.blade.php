@@ -17,7 +17,7 @@
                 <input type="password" class="form-control" id="exampleInputPassword1">
                 </div>
                 <div class="mb-3">
-                <label for="exampleInputPassword2" class="form-label">Re-enter password</label>
+                <label for="exampleInputPassword2" class="form-label">Confirm password</label>
                 <input type="password" class="form-control" id="exampleInputPassword2">
                 </div>
                 <div class="input-group mb-3">

@@ -11,7 +11,7 @@
             </h3>
             </article>
             <article class="p-4 flex justify-center gap-4">
-                <a href="{{ route('signup') }}">
+                <a href="{{ route('signUp') }}">
                     <button class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-4 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105" style="border-radius: 0.5rem;">
                         Sign Up
                     </button>

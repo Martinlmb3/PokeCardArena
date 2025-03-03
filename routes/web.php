@@ -1,6 +1,9 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+
+use App\Http\Controllers\PokemonMasterController;
+use App\Http\Controllers\PokemonController;
+use App\Http\Controllers\PokedexController;
 use Illuminate\Support\Facades\Route;
 
 /******HomePage*****/
@@ -9,15 +12,12 @@ Route::get('/', function () {
 })->name('index');
 
 /************Login*************/
-Route::get('/login', function () {
-    return view('pokeView.login');
-})->name('login');
-
+Route::get('/login', [PokemonMasterController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [PokemonMasterController::class, 'doLoginForm'])->name('login');
 /************SignUp*************/
-Route::get('/signup', function () {
-    return view('pokeView.signup');
-})->name('signup');
-
+Route::get('/signup', [PokemonMasterController::class, 'showSignUpForm'])->name('signUp');
+Route::post('/signup', [PokemonMasterController::class, 'doSignUpForm'])->name('signUp');
+//
 // Authenticated Routes Group
 Route::middleware(['auth', 'verified'])->group(function () {
     /******Pokedex*****/
@@ -31,14 +31,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->where('id', '[0-9]+')->name('my.pokemon');
 
     /******Profile*****/
-    Route::get('/profile/{id}', [ProfileController::class, 'edit'])->where('id', '[0-9]+')->name('profile.edit');
-    Route::patch('/profile/{id}', [ProfileController::class, 'update'])->where('id', '[0-9]+')->name('profile.update');
+    Route::get('/profile/{id}', [PokemonMasterController::class, 'edit'])->where('id', '[0-9]+')->name('profile.edit');
+    Route::patch('/profile/{id}', [PokemonMasterController::class, 'update'])->where('id', '[0-9]+')->name('profile.update');
 
     /******PokemonCenter*****/
     Route::get('/pokemonCenter/{id}', function ($id) {
         return view('pokeView.pokemonCenter', ['id' => $id]);
     })->where('id', '[0-9]+')->name('pokemonCenter.show');
-    Route::patch('/pokemonCenter/{id}', [ProfileController::class, 'add'])->where('id', '[0-9]+')->name('pokemon.center');
+    Route::patch('/pokemonCenter/{id}', [PokemonMasterController::class, 'add'])->where('id', '[0-9]+')->name('pokemon.center');
 });
 
 require __DIR__ . '/auth.php';

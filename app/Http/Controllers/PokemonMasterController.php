@@ -2,29 +2,50 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\SignUpRequest;
 use App\Models\Pokemaster;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 class PokemonMasterController extends Controller
 {
-    public function register(Request $request)
+
+    public function showLoginForm()
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:pokemasters,email',
-            'password' => 'required|min:6|confirmed',
+        return view('pokeView.login');
+    }
+    public function showSignUpForm()
+    {
+        return view('pokeView.signUp');
+    }
+
+    public function doSignUpForm(SignUpRequest $request): \Illuminate\Routing\Redirector | \Illuminate\Http\RedirectResponse
+    {
+        $validatedData = $request->SignUpRequest::rules();
+        $pokemaster =  Pokemaster::create([
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'password' => Hash::make($validatedData['password']),
+            'profile' =>  null
         ]);
+        $request->session()->regenerate();
+        return redirect()->route('pokedex.show');
+    }
 
-        $pokemaster = Pokemaster::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
+    public function doLoginForm(LoginRequest $request)
+    {
+        $pokemaster = $request->LoginRequest::rules();
 
-        Auth::auth()->login($pokemaster);
+        if (Auth::attempt($pokemaster)) {
+            $request->session()->regenerate();
+            $userId = Auth::id();
+            return redirect()->route('pokeView.pokedex', ['id' => $userId]);
+        }
 
-        return redirect()->route('pokedex.show')->with('success', 'Registration successful!');
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+            'password' => 'The provided credentials do not match our records.'
+        ])->onlyInput('email');
     }
 }
