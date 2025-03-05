@@ -4,17 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\SignUpRequest;
-use App\Models\Pokemaster;
+use App\Models\PokemonMaster;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 class PokemonMasterController extends Controller
 {
-
     public function showLoginForm()
     {
         return view('pokeView.login');
     }
+
     public function showSignUpForm()
     {
         return view('pokeView.signUp');
@@ -22,30 +22,39 @@ class PokemonMasterController extends Controller
 
     public function doSignUpForm(SignUpRequest $request): \Illuminate\Routing\Redirector | \Illuminate\Http\RedirectResponse
     {
-        $validatedData = $request->SignUpRequest::rules();
-        $pokemaster =  Pokemaster::create([
+        $validatedData = $request->validated();
+        $pokeMaster = PokemonMaster::create([
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
             'password' => Hash::make($validatedData['password']),
-            'profile' =>  null
+            'profile' => '/public/images/profiles/pp.png',
+            'xp' => 50,
+            'title' => 'Pokémon Trainer'
         ]);
-        $request->session()->regenerate();
-        return redirect()->route('pokedex.show');
+
+        if ($pokeMaster) {
+            session(['user_id' => $pokeMaster->id]);
+            $request->session()->regenerate();
+            return redirect()->route('pokeView.pokedex', ['id' => $pokeMaster->id]);
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials are incorrect.',
+        ])->onlyInput('email');
     }
 
-    public function doLoginForm(LoginRequest $request)
+    public function doLoginForm(LoginRequest $request): \Illuminate\Routing\Redirector | \Illuminate\Http\RedirectResponse
     {
-        $pokemaster = $request->LoginRequest::rules();
+        $credentials = $request->validated();
 
-        if (Auth::attempt($pokemaster)) {
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            $userId = Auth::id();
-            return redirect()->route('pokeView.pokedex', ['id' => $userId]);
+            session(['user_id' => Auth::id()]);
+            return redirect()->route('pokeView.pokedex', ['id' => Auth::id()]);
         }
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
-            'password' => 'The provided credentials do not match our records.'
         ])->onlyInput('email');
     }
 }

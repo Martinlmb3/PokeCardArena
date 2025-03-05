@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('email', 30)->unique();
             $table->string('password', 60);
             $table->string('title', 30);
-            $table->integer('xp');
-            $table->string('profile', 60);
+            $table->integer('xp')->default(0);
+            $table->string('profile')->nullable();
         });
     }
 

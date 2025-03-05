@@ -1,4 +1,5 @@
-<x-load>
+<x-layout>
+    <x-auth-session-status class="mb-4" :status="session('status')" />
     <main class="bg-gray-200 p-5">
         <section class="flex flex-col mt-5 mx-auto max-w-4xl bg-white shadow-xl p-4">
             <h1 class="text-center text-2xl font-bold mb-4">Hello PLAYER_NAME</h1>
@@ -16,4 +17,4 @@
             </div>
         </section>
     </main>
-</x-load>
+</x-layout>

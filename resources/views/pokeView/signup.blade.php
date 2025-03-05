@@ -1,29 +1,35 @@
 <x-layout>
     <main class="bg-gray-200 p-5">
         <section class=" bg-white mx-auto max-w-7xl px-8 py-6 w-150 mt-4 sm:px-6 lg:px-8 shadow-xl">
-            <form method="POST" action="{{ route('signUp') }}">
+            <h1 class="text-center">Sign Up</h1>
+            <form method="POST" action="{{ route('signUp.submit') }}">
+                @csrf
+    
                 <div class="form-group">
-                    <label for="userName">First Name</label>
-                    <input type="text" class="form-control" id="userName">
+                    <label for="name">Name</label>
+                    <input type="text" class="form-control @error('name') is-invalid @enderror"
+                        id="name" name="name" value="{{ old('name') }}" required>
+                    @error('name')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
+    
                 <div class="form-group">
-                    <label for="userEmail">Email</label>
-                    <input type="email" class="form-control" id="userEmail" aria-describedby="emailHelp" placeholder="Enter email">
-                    <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control @error('email') is-invalid @enderror"
+                        id="email" name="email" value="{{ old('email') }}" required>
                     @error('email')
-                    <div class="text-red-500">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
+    
                 <div class="form-group">
-                    <label for="userPassword">Password</label>
-                    <input type="password" class="form-control" id="userPassword" placeholder="Password">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control @error('password') is-invalid @enderror"
+                        id="password" name="password" required>
                     @error('password')
-                    <div class="text-red-500">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                </div>
-                <div class="form-check">
-                    <input type="checkbox" class="form-check-input" id="exampleCheck1">
-                    <label class="form-check-label" for="exampleCheck1">I'm not a bot</label>
                 </div>
                 <button type="submit" class="btn btn-primary mt-3">Submit</button>
             </form>

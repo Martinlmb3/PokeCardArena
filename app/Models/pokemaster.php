@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class pokemaster extends Model
+class PokemonMaster extends Model
 {
-    protected $fillable = ['name', 'password', 'email', 'profile'];
+    protected $fillable = ['name', 'email', 'password', 'profile', 'xp', 'title'];
     /** @use HasFactory<\Database\Factories\PokemasterFactory> */
     use HasFactory;
 }

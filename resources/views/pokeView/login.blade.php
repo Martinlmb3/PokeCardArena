@@ -1,7 +1,7 @@
 <x-layout>
     <main class="bg-gray-200 p-5">
         <div class="bg-white mx-auto max-w-7xl px-8 py-6 w-150 mt-4 sm:px-6 lg:px-8 shadow-xl">
-            <form method="POST" action="{{ route('login') }}">
+            <form method="POST" action="{{ route('login.submit') }}">
             @csrf
                 <div class="form-group">
                     <label for="userEmail">Email</label>

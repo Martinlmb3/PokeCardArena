@@ -2,8 +2,6 @@
 
 
 use App\Http\Controllers\PokemonMasterController;
-use App\Http\Controllers\PokemonController;
-use App\Http\Controllers\PokedexController;
 use Illuminate\Support\Facades\Route;
 
 /******HomePage*****/
@@ -13,10 +11,11 @@ Route::get('/', function () {
 
 /************Login*************/
 Route::get('/login', [PokemonMasterController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [PokemonMasterController::class, 'doLoginForm'])->name('login');
+Route::post('/login', [PokemonMasterController::class, 'doLoginForm'])->name('login.submit');
+
 /************SignUp*************/
 Route::get('/signup', [PokemonMasterController::class, 'showSignUpForm'])->name('signUp');
-Route::post('/signup', [PokemonMasterController::class, 'doSignUpForm'])->name('signUp');
+Route::post('/signup', [PokemonMasterController::class, 'doSignUpForm'])->name('signUp.submit');
 //
 // Authenticated Routes Group
 Route::middleware(['auth', 'verified'])->group(function () {

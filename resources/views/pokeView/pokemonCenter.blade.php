@@ -1,4 +1,4 @@
-<x-load>
+<x-layout>
     <main class="bg-gray-200 p-5">
         <article class="flex m-auto p-5 rounded bg-white w-full max-w-3xl">
             <form action="" class="flex flex-col sm:flex-row items-center gap-4 w-full">
@@ -123,4 +123,4 @@
             </a>
             </section>
     </main>
-</x-load>
+</x-layout>
