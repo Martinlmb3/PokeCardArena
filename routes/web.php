@@ -23,14 +23,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/pokedex/{id}', function ($id) {
         return view('pokeView.pokedex', ['id' => $id]);
     })->where('id', '[0-9]+')->name('pokedex');
-
     /******MyPokemon*****/
     Route::get('/myPokemon/{id}', function ($id) {
         return view('pokeView.myPokemon', ['id' => $id]);
     })->where('id', '[0-9]+')->name('my.pokemon');
 
     /******Profile*****/
-    Route::get('/profile/{id}', [PokemonMasterController::class, 'edit'])->where('id', '[0-9]+')->name('profile.edit');
+    Route::get('/profile/{id}', [PokemonMasterController::class, 'edit'])->where('id', '[0-9]+')->name('profile');
     Route::patch('/profile/{id}', [PokemonMasterController::class, 'update'])->where('id', '[0-9]+')->name('profile.update');
 
     /******PokemonCenter*****/
@@ -39,5 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->where('id', '[0-9]+')->name('pokemonCenter.show');
     Route::patch('/pokemonCenter/{id}', [PokemonMasterController::class, 'add'])->where('id', '[0-9]+')->name('pokemon.center');
 });
+/*******Logout**** */
+Route::get('/login', [PokemonMasterController::class, 'logout'])->name('logout');
 
 require __DIR__ . '/auth.php';

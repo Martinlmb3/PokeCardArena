@@ -46,7 +46,7 @@ class PokemonMasterController extends Controller
     public function doLoginForm(LoginRequest $request): \Illuminate\Routing\Redirector | \Illuminate\Http\RedirectResponse
     {
         $credentials = $request->validated();
-
+        dd(Auth::attempt($credentials));
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             session(['user_id' => Auth::id()]);
@@ -56,5 +56,14 @@ class PokemonMasterController extends Controller
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->onlyInput('email');
+    }
+    public function logout()
+    {
+        Auth::logout();
+        return to_route('pokeView.index');
+    }
+    public function getProfile()
+    {
+        return view('pokeView.profile');
     }
 }
