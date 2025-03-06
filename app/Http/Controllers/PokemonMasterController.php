@@ -19,7 +19,18 @@ class PokemonMasterController extends Controller
     {
         return view('pokeView.signUp');
     }
-
+    public function showProfile()
+    {
+        return view('pokeView.profile');
+    }
+    public function showTrainerPokemon()
+    {
+        return view('pokeView.myPokemon');
+    }
+    public function showPokemon()
+    {
+        return view('pokeView.pokemonCenter');
+    }
     public function doSignUpForm(SignUpRequest $request): \Illuminate\Routing\Redirector | \Illuminate\Http\RedirectResponse
     {
         $validatedData = $request->validated();
@@ -50,7 +61,7 @@ class PokemonMasterController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             session(['user_id' => Auth::id()]);
-            return redirect()->route('pokeView.pokedex', ['id' => Auth::id()]);
+            return redirect()->route('pokedex', ['id' => Auth::id()]);
         }
 
         return back()->withErrors([
@@ -61,9 +72,5 @@ class PokemonMasterController extends Controller
     {
         Auth::logout();
         return to_route('pokeView.index');
-    }
-    public function getProfile()
-    {
-        return view('pokeView.profile');
     }
 }
