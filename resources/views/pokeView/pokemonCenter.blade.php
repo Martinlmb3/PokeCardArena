@@ -1,126 +1,58 @@
 <x-layout>
-    <main class="bg-gray-200 p-5">
-        <article class="flex m-auto p-5 rounded bg-white w-full max-w-3xl">
-            <form action="" class="flex flex-col sm:flex-row items-center gap-4 w-full">
-                <div class="form-group w-full sm:flex-1">
-                <label for="search" class="sr-only">Search Pokémon</label>
-                <input type="text"
-                    class="form-control w-full"
-                    name="search"
-                    id="search"
-                    placeholder="Search Pokémon...">
+    <main class="bg-gray-200 min-h-screen">
+        <section class="container mx-auto px-4 py-8">
+            <h1 class="text-3xl font-bold text-center mb-8">Pokemon Center</h1>
+
+            @if(isset($error))
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-center">
+                    {{ $error }}
                 </div>
-                <div class="form-group w-full sm:w-48">
-                <label for="type" class="sr-only">Type</label>
-                <select class="form-control w-full" name="type" id="type">
-                    <option value="" disabled selected>Select Type</option>
-                    <option value="fire">Fire</option>
-                    <option value="water">Water</option>
-                    <option value="grass">Grass</option>
-                    <option value="electric">Electric</option>
-                    <option value="ice">Ice</option>
-                    <option value="fighting">Fighting</option>
-                    <option value="poison">Poison</option>
-                    <option value="ground">Ground</option>
-                    <option value="flying">Flying</option>
-                    <option value="psychic">Psychic</option>
-                    <option value="bug">Bug</option>
-                    <option value="rock">Rock</option>
-                    <option value="ghost">Ghost</option>
-                    <option value="dragon">Dragon</option>
-                    <option value="dark">Dark</option>
-                    <option value="steel">Steel</option>
-                    <option value="fairy">Fairy</option>
-                </select>
+            @endif
+
+            @if(!empty($pokemons))
+                <article class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    @foreach($pokemons as $index => $pokemon)
+                        <div class="transform transition-all duration-300 hover:-translate-y-2">
+                            <div class="bg-black rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer h-48 flex items-center justify-center overflow-hidden" onclick="revealPokemon(this)">
+                                <div class="flex flex-col items-center justify-center p-4">
+                                    <div class="w-28 h-28 flex items-center justify-center relative">
+                                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{{ $index + 1 }}.png"
+                                            alt="{{ ucfirst($pokemon) }}"
+                                            class="w-full h-full object-contain transition-all duration-300 brightness-0">
+                                    </div>
+                                    <h5 class="mt-3 text-lg font-semibold capitalize text-black transition-all duration-300">
+                                        {{ ucfirst($pokemon) }}
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </article>
+            @else
+                <div class="text-center text-gray-600">
+                    <p>No Pokémon available at the moment. Please try again later.</p>
                 </div>
-                <button type="submit" class="btn btn-primary w-full sm:w-32">Search</button>
-            </form>
-            </article>
-            <section class="flex flex-col sm:flex-row sm:flex-wrap mt-5 mx-auto max-w-4xl bg-white justify-evenly shadow-xl p-4">
-            <a href="" class="w-full sm:w-auto flex justify-center">
-                <article class="w-full sm:w-48 h-60 my-2 sm:m-5 bg-green-500">
-                <p>Name</p>
-                <p>Type</p>
-                <img src="" alt="pokémon">
-                </article>
-            </a>
-            <a href="" class="w-full sm:w-auto flex justify-center">
-                <article class="w-full sm:w-48 h-60 my-2 sm:m-5 bg-blue-950">
-                <p>Name</p>
-                <p>Type</p>
-                <img src="" alt="pokémon">
-                </article>
-            </a>
-            <a href="" class="w-full sm:w-auto flex justify-center">
-                <article class="w-full sm:w-48 h-60 my-2 sm:m-5 bg-purple-500">
-                <p>Name</p>
-                <p>Type</p>
-                <img src="" alt="pokémon">
-                </article>
-            </a>
-            <a href="" class="w-full sm:w-auto flex justify-center">
-                <article class="w-full sm:w-48 h-60 my-2 sm:m-5 bg-orange-200">
-                <p>Name</p>
-                <p>Type</p>
-                <img src="" alt="pokémon">
-                </article>
-            </a>
-            <a href="" class="w-full sm:w-auto flex justify-center">
-                <article class="w-full sm:w-48 h-60 my-2 sm:m-5 bg-yellow-200">
-                <p>Name</p>
-                <p>Type</p>
-                <img src="" alt="pokémon">
-                </article>
-            </a>
-            <a href="" class="w-full sm:w-auto flex justify-center">
-                <article class="w-full sm:w-48 h-60 my-2 sm:m-5 bg-pink-100">
-                <p>Name</p>
-                <p>Type</p>
-                <img src="" alt="pokémon">
-                </article>
-            </a>
-            <a href="" class="w-full sm:w-auto flex justify-center">
-                <article class="w-full sm:w-48 h-60 my-2 sm:m-5 bg-orange-200">
-                <p>Name</p>
-                <p>Type</p>
-                <img src="" alt="pokémon">
-                </article>
-            </a>
-            <a href="" class="w-full sm:w-auto flex justify-center">
-                <article class="w-full sm:w-48 h-60 my-2 sm:m-5 bg-yellow-200">
-                <p>Name</p>
-                <p>Type</p>
-                <img src="" alt="pokémon">
-                </article>
-            </a>
-            <a href="" class="w-full sm:w-auto flex justify-center">
-                <article class="w-full sm:w-48 h-60 my-2 sm:m-5 bg-pink-100">
-                <p>Name</p>
-                <p>Type</p>
-                <img src="" alt="pokémon">
-                </article>
-            </a>
-            <a href="" class="w-full sm:w-auto flex justify-center">
-                <article class="w-full sm:w-48 h-60 my-2 sm:m-5 bg-orange-200">
-                <p>Name</p>
-                <p>Type</p>
-                <img src="" alt="pokémon">
-                </article>
-            </a>
-            <a href="" class="w-full sm:w-auto flex justify-center">
-                <article class="w-full sm:w-48 h-60 my-2 sm:m-5 bg-yellow-200">
-                <p>Name</p>
-                <p>Type</p>
-                <img src="" alt="pokémon">
-                </article>
-            </a>
-            <a href="" class="w-full sm:w-auto flex justify-center">
-                <article class="w-full sm:w-48 h-60 my-2 sm:m-5 bg-pink-100">
-                <p>Name</p>
-                <p>Type</p>
-                <img src="" alt="pokémon">
-                </article>
-            </a>
-            </section>
+            @endif
+        </section>
     </main>
+
+    <script>
+        function revealPokemon(card) {
+            // Change background to white
+            card.classList.remove('bg-black');
+            card.classList.add('bg-gradient-to-b', 'from-white', 'to-gray-50');
+
+            // Reveal the Pokemon
+            const img = card.querySelector('img');
+            img.classList.remove('brightness-0');
+
+            // Show the name
+            const name = card.querySelector('h5');
+            name.classList.remove('text-black');
+            name.classList.add('text-gray-800');
+
+            // Remove click handler
+            card.onclick = null;
+        }
+    </script>
 </x-layout>

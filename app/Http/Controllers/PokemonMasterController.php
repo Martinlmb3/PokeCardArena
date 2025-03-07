@@ -5,16 +5,25 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\SignUpRequest;
 use App\Models\PokemonMaster;
+use App\Services\PokemonApiService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use App\Models\DiscoveredPokemon;
 
 class PokemonMasterController extends Controller
 {
+    protected $pokemonService;
+
+    public function __construct(PokemonApiService $pokemonService)
+    {
+        $this->pokemonService = $pokemonService;
+    }
+
     public function showLoginForm()
     {
         return view('pokeView.login');
     }
-
     public function showSignUpForm()
     {
         return view('pokeView.signUp');
@@ -29,7 +38,20 @@ class PokemonMasterController extends Controller
     }
     public function showPokemon()
     {
-        return view('pokeView.pokemonCenter');
+        $pokemons = $this->pokemonService->fetchPokemonNames();
+        $discoveredPokemon = DiscoveredPokemon::where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('pokeView.pokemonCenter', [
+            'pokemons' => $pokemons,
+            'discoveredPokemon' => $discoveredPokemon
+        ]);
+    }
+    public function logout()
+    {
+        Auth::logout();
+        return to_route('pokeView.index');
     }
     public function doSignUpForm(SignUpRequest $request): \Illuminate\Routing\Redirector | \Illuminate\Http\RedirectResponse
     {
@@ -46,7 +68,7 @@ class PokemonMasterController extends Controller
         if ($pokeMaster) {
             session(['user_id' => $pokeMaster->id]);
             $request->session()->regenerate();
-            return redirect()->route('pokeView.pokedex', ['id' => $pokeMaster->id]);
+            return redirect()->intended(route('pokedex', ['id' => Auth::id()]));
         }
 
         return back()->withErrors([
@@ -61,16 +83,33 @@ class PokemonMasterController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             session(['user_id' => Auth::id()]);
-            return redirect()->route('pokedex', ['id' => Auth::id()]);
+            return redirect()->intended(route('pokedex', ['id' => Auth::id()]));
         }
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->onlyInput('email');
     }
-    public function logout()
+
+    public function discoverPokemon(Request $request)
     {
-        Auth::logout();
-        return to_route('pokeView.index');
+        try {
+            $discovered = DiscoveredPokemon::create([
+                'user_id' => Auth::id(),
+                'pokemon_id' => $request->pokemon_id,
+                'pokemon_name' => $request->pokemon_name,
+                'sprite_url' => "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{$request->pokemon_id}.png"
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'pokemon' => $discovered
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to record discovered Pokemon'
+            ], 500);
+        }
     }
 }

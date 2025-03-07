@@ -33,10 +33,12 @@ Route::controller(PokemonMasterController::class)->group(function () {
     Route::patch('/profile/{id}', [PokemonMasterController::class, 'update'])->where('id', '[0-9]+')->name('profile.update');
 
     /******PokemonCenter*****/
-    Route::get('/pokemonCenter/{id}', function ($id) {
+    /* Route::get('/pokemonCenter/{id}', function ($id) {
         return view('pokeView.pokemonCenter', ['id' => $id]);
-    })->where('id', '[0-9]+')->name('pokemonCenter.show');
-    Route::patch('/pokemonCenter/{id}', [PokemonMasterController::class, 'add'])->where('id', '[0-9]+')->name('pokemon.center');
+    })->where('id', '[0-9]+')->name('pokemonCenter.show');*/
+    Route::get('/pokemonCenter/{id}', [PokemonMasterController::class, 'showPokemon'])->where('id', '[0-9]+');
+
+    Route::post('/pokemon/discover', [PokemonMasterController::class, 'discoverPokemon'])->name('pokemon.discover');
 });
 /*******Logout**** */
 Route::post('/login', [PokemonMasterController::class, 'logout'])->name('logout');
