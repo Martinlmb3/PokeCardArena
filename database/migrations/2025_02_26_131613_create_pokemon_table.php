@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('pokemon', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->string('name', 30);
             $table->string('image', 120);
-            $table->string('type', 30)->unique();
-            $table->boolean('isMythical');
-            $table->boolean('isLegendary');
+            $table->string('type', 30);
+            $table->string('rarity', 30);
             $table->date('capture_at');
+            $table->foreignId('pokedex_id')->constrained('pokedex')->onDelete('cascade');
         });
     }
 

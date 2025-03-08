@@ -1,7 +1,7 @@
 <x-layout>
     <main class="bg-gray-200 min-h-screen">
         <section class="container mx-auto px-4 py-8">
-            <h1 class="text-3xl font-bold text-center mb-8">Pokemon Center</h1>
+            <h1 class="text-3xl font-bold text-center mb-5">Pokemon Center</h1>
 
             @if(isset($error))
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-center">

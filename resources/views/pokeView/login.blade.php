@@ -6,7 +6,8 @@
             @csrf
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" class="form-control" id="email" aria-describedby="emailHelp" placeholder="Enter email" value="{{ old('email') }}" required>
+                    <input type="email" name="email" class="form-control" id="email" aria-describedby="emailHelp"
+                        placeholder="Enter email" value="{{ old('email') }}" required>
                     <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
                     @error('email')
                         <div class="text-red-500">{{ $message }}</div>
@@ -14,7 +15,7 @@
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" class="form-control" id="password" required>
+                    <input type="password" name="password" class="form-control" id="password" required>
                     @error('password')
                     <div class="text-red-500">{{ $message }}</div>
                     @enderror

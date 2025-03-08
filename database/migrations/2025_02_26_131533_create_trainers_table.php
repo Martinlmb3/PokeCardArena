@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pokemasters', function (Blueprint $table) {
+        Schema::create('trainers', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
             $table->string('name', 30);
@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('title', 30);
             $table->integer('xp')->default(0);
             $table->string('profile')->nullable();
+            $table->rememberToken();
         });
     }
 
@@ -28,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pokemasters');
+        Schema::dropIfExists('trainers');
     }
 };

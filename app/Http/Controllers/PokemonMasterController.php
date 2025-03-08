@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\SignUpRequest;
-use App\Models\PokemonMaster;
+use App\Models\Trainer;
 use App\Services\PokemonApiService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use App\Models\DiscoveredPokemon;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Session;
 
 class PokemonMasterController extends Controller
 {
@@ -20,69 +20,70 @@ class PokemonMasterController extends Controller
         $this->pokemonService = $pokemonService;
     }
 
-    public function showLoginForm()
-    {
-        return view('pokeView.login');
-    }
+
+
     public function showSignUpForm()
     {
         return view('pokeView.signUp');
     }
+
     public function showProfile()
     {
         return view('pokeView.profile');
     }
+
     public function showTrainerPokemon()
     {
         return view('pokeView.myPokemon');
     }
+
     public function showPokemon()
     {
         $pokemons = $this->pokemonService->fetchPokemonNames();
-        $discoveredPokemon = DiscoveredPokemon::where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('pokeView.pokemonCenter', [
-            'pokemons' => $pokemons,
-            'discoveredPokemon' => $discoveredPokemon
-        ]);
+        return view('pokeView.pokemonCenter', ['pokemons' => $pokemons]);
     }
+
     public function logout()
     {
         Auth::logout();
-        return to_route('pokeView.index');
+        Session::flush();
+        Session::invalidate();
+        Cookie::queue(Cookie::forget('laravel_session'));
+        Cookie::queue(Cookie::forget('XSRF-TOKEN'));
+        return redirect()->route('index')->with('success', 'You have been logged out successfully');
     }
+
     public function doSignUpForm(SignUpRequest $request): \Illuminate\Routing\Redirector | \Illuminate\Http\RedirectResponse
     {
         $validatedData = $request->validated();
-        $pokeMaster = PokemonMaster::create([
+        $trainer = Trainer::create([
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
             'password' => Hash::make($validatedData['password']),
             'profile' => '/public/images/profiles/pp.png',
-            'xp' => 50,
             'title' => 'Pokémon Trainer'
         ]);
 
-        if ($pokeMaster) {
-            session(['user_id' => $pokeMaster->id]);
-            $request->session()->regenerate();
-            return redirect()->intended(route('pokedex', ['id' => Auth::id()]));
+        if ($trainer) {
+            Auth::login($trainer);
+            return redirect()->route('pokedex', ['id' => $trainer->id]);
         }
 
         return back()->withErrors([
             'email' => 'The provided credentials are incorrect.',
         ])->onlyInput('email');
     }
-
+    public function showLoginForm()
+    {
+        dd('Route is working');
+        return view('pokeView.login');
+    }
     public function doLoginForm(LoginRequest $request): \Illuminate\Routing\Redirector | \Illuminate\Http\RedirectResponse
     {
         $credentials = $request->validated();
-        dd(Auth::attempt($credentials));
+
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            session(['user_id' => Auth::id()]);
             return redirect()->intended(route('pokedex', ['id' => Auth::id()]));
         }
 
@@ -91,25 +92,20 @@ class PokemonMasterController extends Controller
         ])->onlyInput('email');
     }
 
-    public function discoverPokemon(Request $request)
-    {
-        try {
-            $discovered = DiscoveredPokemon::create([
-                'user_id' => Auth::id(),
-                'pokemon_id' => $request->pokemon_id,
-                'pokemon_name' => $request->pokemon_name,
-                'sprite_url' => "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{$request->pokemon_id}.png"
-            ]);
+    public function fetchTrainerProfile($id){
+        $trainer = Trainer::findOrFail($id);
+        return view('pokeView.profile', [
+            'name' => $trainer->name,
+            'email' => $trainer->email
+        ]);
+    }
 
-            return response()->json([
-                'success' => true,
-                'pokemon' => $discovered
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to record discovered Pokemon'
-            ], 500);
-        }
+    public function showPokedex($id)
+    {
+        $trainer = Trainer::findOrFail($id);
+        return view('pokeView.pokedex', [
+            'user' => $trainer,
+            'id' => $id
+        ]);
     }
 }

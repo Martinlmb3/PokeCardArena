@@ -62,7 +62,7 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\Pokemaster::class,
+            'model' => App\Models\Trainer::class,
         ],
 
         // 'users' => [
