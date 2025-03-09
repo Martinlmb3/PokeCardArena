@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class PokemonMasterController extends Controller
 {
@@ -107,5 +110,49 @@ class PokemonMasterController extends Controller
             'user' => $trainer,
             'id' => $id
         ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        // Validate user can only update their own profile
+        if (Auth::id() != $id) {
+            return redirect()->route('profile', ['id' => Auth::id()])->with('error', 'You cannot update other users\' profiles');
+        }
+
+        // Validate input
+        $validatedData = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('trainers')->ignore($id)
+            ],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'profile_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+        ]);
+
+        $trainer = Trainer::findOrFail($id);
+
+        $trainer->name = $validatedData['name'];
+        $trainer->email = $validatedData['email'];
+
+        if (!empty($validatedData['password'])) {
+            $trainer->password = Hash::make($validatedData['password']);
+        }
+
+        if ($request->hasFile('profile_image')) {
+            $profileImage = $request->file('profile_image');
+            $filename = time() . '.' . $profileImage->getClientOriginalExtension();
+
+            $path = $profileImage->storeAs('public/images/profiles', $filename);
+
+            $trainer->profile = '/public/images/profiles/' . $filename;
+        }
+
+        $trainer->save();
+
+        return redirect()->route('profile', ['id' => $id])->with('success', 'Profile updated successfully');
     }
 }
