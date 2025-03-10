@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\SignUpRequest;
 use App\Models\Trainer;
+use App\Models\pokedex;
+use App\Models\pokemon;
 use App\Services\PokemonApiService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +14,7 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class PokemonMasterController extends Controller
@@ -40,10 +43,55 @@ class PokemonMasterController extends Controller
         return view('pokeView.myPokemon');
     }
 
-    public function showPokemon()
+    public function showPokemon(Request $request, $id)
     {
         $pokemons = $this->pokemonService->fetchPokemonNames();
-        return view('pokeView.pokemonCenter', ['pokemons' => $pokemons]);
+        $viewData = ['pokemons' => $pokemons];
+
+        if ($request->has('pokemon_id')) {
+            $pokemonId = $request->input('pokemon_id');
+            $trainerId = $id;
+
+            if (Auth::id() != $trainerId) {
+                return redirect()->route('pokemonCenter', ['id' => Auth::id()])->with('error', 'Unauthorized access');
+            }
+
+            try {
+                $pokemonDetails = DB::table('trainers')
+                    ->join('pokedexes', 'trainers.id', '=', 'pokedexes.trainer_id')
+                    ->leftJoin('pokemons', function ($join) use ($pokemonId) {
+                        $join->on('pokedexes.id', '=', 'pokemons.pokedex_id')
+                            ->where('pokemons.id', '=', $pokemonId);
+                    })
+                    ->where('trainers.id', '=', $trainerId)
+                    ->select(
+                        'trainers.name as trainer_name',
+                        'trainers.id as trainer_id',
+                        'pokemons.id as pokemon_id',
+                        'pokemons.name as pokemon_name',
+                        'pokemons.type as pokemon_type',
+                        'pokemons.level as pokemon_level'
+                    )
+                    ->first();
+
+                if (!$pokemonDetails || !isset($pokemonDetails->pokemon_name)) {
+                    $selectedPokemon = $this->pokemonService->fetchPokemonDetails($pokemonId);
+                    $viewData['selectedPokemon'] = $selectedPokemon;
+                } else {
+                    $viewData['selectedPokemon'] = [
+                        'id' => $pokemonDetails->pokemon_id,
+                        'name' => $pokemonDetails->pokemon_name,
+                        'image' => "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{$pokemonDetails->pokemon_id}.png",
+                        'types' => [$pokemonDetails->pokemon_type],
+                        'level' => $pokemonDetails->pokemon_level
+                    ];
+                }
+            } catch (\Exception $e) {
+                $viewData['error'] = 'Error retrieving Pokemon details: ' . $e->getMessage();
+            }
+        }
+
+        return view('pokeView.pokemonCenter', $viewData);
     }
 
     public function logout()
@@ -95,7 +143,8 @@ class PokemonMasterController extends Controller
         ])->onlyInput('email');
     }
 
-    public function fetchTrainerProfile($id){
+    public function fetchTrainerProfile($id)
+    {
         $trainer = Trainer::findOrFail($id);
         return view('pokeView.profile', [
             'name' => $trainer->name,
@@ -112,14 +161,59 @@ class PokemonMasterController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function selectPokemon(Request $request)
     {
-        // Validate user can only update their own profile
+        // Get the Pokemon ID from the request
+        $pokemonId = $request->input('pokemon_id');
+
+        // Get the authenticated trainer's ID
+        $trainerId = Auth::id();
+
+        if (!$trainerId || !$pokemonId) {
+            return redirect()->back()->with('error', 'Missing trainer or Pokemon information');
+        }
+
+        // Perform database join to get trainer's pokedex and the selected Pokemon
+        $pokemonDetails = DB::table('trainers')
+            ->join('pokedexes', 'trainers.id', '=', 'pokedexes.trainer_id')
+            ->leftJoin('pokemons', 'pokemons.id', '=', $pokemonId)
+            ->where('trainers.id', '=', $trainerId)
+            ->select(
+                'trainers.name as trainer_name',
+                'trainers.id as trainer_id',
+                'pokemons.id as pokemon_id',
+                'pokemons.name as pokemon_name',
+                'pokemons.type as pokemon_type',
+                'pokemons.level as pokemon_level'
+            )
+            ->first();
+
+        // If the Pokemon isn't found, fetch the details from the API
+        if (!$pokemonDetails || !$pokemonDetails->pokemon_name) {
+            $pokemonInfo = $this->pokemonService->fetchPokemonDetails($pokemonId);
+
+            // Create a view to display the Pokemon details
+            return view('pokeView.pokemonDetails', [
+                'pokemon' => $pokemonInfo,
+                'pokemon_id' => $pokemonId,
+                'trainer_id' => $trainerId
+            ]);
+        }
+
+        return view('pokeView.pokemonDetails', [
+            'pokemonDetails' => $pokemonDetails,
+            'pokemon_id' => $pokemonId,
+            'trainer_id' => $trainerId
+        ]);
+    }
+
+    public function update(Request $request, $id): \Illuminate\Routing\Redirector | \Illuminate\Http\RedirectResponse
+    {
+
         if (Auth::id() != $id) {
             return redirect()->route('profile', ['id' => Auth::id()])->with('error', 'You cannot update other users\' profiles');
         }
 
-        // Validate input
         $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -139,6 +233,11 @@ class PokemonMasterController extends Controller
         $trainer->email = $validatedData['email'];
 
         if (!empty($validatedData['password'])) {
+            if ($validatedData['password'] !== $validatedData['password_confirmation']) {
+                return back()->withErrors([
+                    'password' => 'Passwords do not match',
+                ]);
+            }
             $trainer->password = Hash::make($validatedData['password']);
         }
 
@@ -148,7 +247,11 @@ class PokemonMasterController extends Controller
 
             $path = $profileImage->storeAs('public/images/profiles', $filename);
 
-            $trainer->profile = '/public/images/profiles/' . $filename;
+            if ($path === false) {
+                return redirect()->back()->with('error', 'Failed to upload profile image. Please try again.');
+            }
+
+            $trainer->profile = Storage::url('images/profiles/' . $filename);
         }
 
         $trainer->save();
