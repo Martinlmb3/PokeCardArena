@@ -6,7 +6,7 @@
             <div class="flex flex-col sm:flex-row justify-evenly items-center gap-4">
             <article class="flex flex-col">
                 <h3>Title: {{ $user->title }}</h3>
-                <h3>You Have {{ $user->xp }}PX</h3>
+                <h3>You Have 0PX</h3>
                 <h3>You need 1500xp To Rank UP</h3>
                 <h3>You have 42 Mythical Pokémon</h3>
                 <h3>You have 3 Legendary Pokémon</h3>

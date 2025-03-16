@@ -25,9 +25,9 @@ class PokemonMasterController extends Controller
     {
         $this->pokemonService = $pokemonService;
     }
-
-
-
+    public function showIndex() {
+        return view('pokeView.index');
+    }
     public function showSignUpForm()
     {
         return view('pokeView.signUp');
@@ -43,10 +43,29 @@ class PokemonMasterController extends Controller
         return view('pokeView.myPokemon');
     }
 
+    public function showLoginForm()
+    {
+        return view('pokeView.login');
+    }
+
+    public function doLoginForm(LoginRequest $request): \Illuminate\Routing\Redirector | \Illuminate\Http\RedirectResponse
+    {
+        $credentials = $request->validated();
+
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+            return redirect()->intended(route('pokedex', ['id' => Auth::id()]));
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
+    }
     public function showPokemon(Request $request, $id)
     {
-        $pokemons = $this->pokemonService->fetchPokemonNames();
-        $viewData = ['pokemons' => $pokemons];
+        // Get random Pokémon collection
+        $randomPokemons = $this->pokemonService->fetchRandomPokemons();
+        $viewData = ['randomPokemons' => $randomPokemons];
 
         if ($request->has('pokemon_id')) {
             $pokemonId = $request->input('pokemon_id');
@@ -59,18 +78,18 @@ class PokemonMasterController extends Controller
             try {
                 $pokemonDetails = DB::table('trainers')
                     ->join('pokedexes', 'trainers.id', '=', 'pokedexes.trainer_id')
-                    ->leftJoin('pokemons', function ($join) use ($pokemonId) {
-                        $join->on('pokedexes.id', '=', 'pokemons.pokedex_id')
-                            ->where('pokemons.id', '=', $pokemonId);
+                    ->leftJoin('pokemon', function ($join) use ($pokemonId) {
+                        $join->on('pokedexes.id', '=', 'pokemon.pokedex_id')
+                            ->where('pokemon.id', '=', $pokemonId);
                     })
                     ->where('trainers.id', '=', $trainerId)
                     ->select(
                         'trainers.name as trainer_name',
                         'trainers.id as trainer_id',
-                        'pokemons.id as pokemon_id',
-                        'pokemons.name as pokemon_name',
-                        'pokemons.type as pokemon_type',
-                        'pokemons.level as pokemon_level'
+                        'pokemon.id as pokemon_id',
+                        'pokemon.name as pokemon_name',
+                        'pokemon.type as pokemon_type',
+                        'pokemon.image as pokemon_image'
                     )
                     ->first();
 
@@ -83,7 +102,7 @@ class PokemonMasterController extends Controller
                         'name' => $pokemonDetails->pokemon_name,
                         'image' => "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{$pokemonDetails->pokemon_id}.png",
                         'types' => [$pokemonDetails->pokemon_type],
-                        'level' => $pokemonDetails->pokemon_level
+                        'level' => $pokemonDetails->pokemon_level ?? 1
                     ];
                 }
             } catch (\Exception $e) {
@@ -112,7 +131,8 @@ class PokemonMasterController extends Controller
             'email' => $validatedData['email'],
             'password' => Hash::make($validatedData['password']),
             'profile' => '/public/images/profiles/pp.png',
-            'title' => 'Pokémon Trainer'
+            'title' => 'Pokémon Trainer',
+            'xp' => 0
         ]);
 
         if ($trainer) {
@@ -124,24 +144,7 @@ class PokemonMasterController extends Controller
             'email' => 'The provided credentials are incorrect.',
         ])->onlyInput('email');
     }
-    public function showLoginForm()
-    {
-        dd('Route is working');
-        return view('pokeView.login');
-    }
-    public function doLoginForm(LoginRequest $request): \Illuminate\Routing\Redirector | \Illuminate\Http\RedirectResponse
-    {
-        $credentials = $request->validated();
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect()->intended(route('pokedex', ['id' => Auth::id()]));
-        }
-
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
-    }
 
     public function fetchTrainerProfile($id)
     {
@@ -163,10 +166,8 @@ class PokemonMasterController extends Controller
 
     public function selectPokemon(Request $request)
     {
-        // Get the Pokemon ID from the request
         $pokemonId = $request->input('pokemon_id');
 
-        // Get the authenticated trainer's ID
         $trainerId = Auth::id();
 
         if (!$trainerId || !$pokemonId) {
@@ -176,15 +177,15 @@ class PokemonMasterController extends Controller
         // Perform database join to get trainer's pokedex and the selected Pokemon
         $pokemonDetails = DB::table('trainers')
             ->join('pokedexes', 'trainers.id', '=', 'pokedexes.trainer_id')
-            ->leftJoin('pokemons', 'pokemons.id', '=', $pokemonId)
+            ->leftJoin('pokemon', 'pokemon.id', '=', $pokemonId)
             ->where('trainers.id', '=', $trainerId)
             ->select(
                 'trainers.name as trainer_name',
                 'trainers.id as trainer_id',
-                'pokemons.id as pokemon_id',
-                'pokemons.name as pokemon_name',
-                'pokemons.type as pokemon_type',
-                'pokemons.level as pokemon_level'
+                'pokemon.id as pokemon_id',
+                'pokemon.name as pokemon_name',
+                'pokemon.type as pokemon_type',
+                'pokemon.image as pokemon_image',
             )
             ->first();
 

@@ -16,10 +16,10 @@ return new class extends Migration
             $table->timestamps();
             $table->string('name', 30);
             $table->string('image', 120);
-            $table->string('type', 30);
-            $table->string('rarity', 30);
+            $table->string('is_legendary', 30);
+            $table->string('is_mythical', 30);
             $table->date('capture_at');
-            $table->foreignId('pokedex_id')->constrained('pokedex')->onDelete('cascade');
+            $table->foreignId('pokedex_id')->references('id')->on('pokedexes')->onUpdate('cascade')->onDelete('cascade');
         });
     }
 

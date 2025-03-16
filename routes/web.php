@@ -4,22 +4,20 @@
 use App\Http\Controllers\PokemonMasterController;
 use Illuminate\Support\Facades\Route;
 
-/******HomePage*****/
-Route::get('/', function () {
-    return view('pokeView.index');
-})->name('index');
 
-/************Login*************/
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [PokemonMasterController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [PokemonMasterController::class, 'doLoginForm'])->name('login.submit');
+
+Route::middleware('guest')->controller(PokemonMasterController::class)->group(function () {
+    /******HomePage*****/
+    Route::get('/', 'showIndex')->name('index');
+    /************Login*************/
+    Route::get('/login', 'showLoginForm')->name('login');
+    Route::post('/login', 'doLoginForm')->name('login.submit');
+    /************SignUp*************/
+    Route::get('/signup', 'showSignUpForm')->name('signUp');
+    Route::post('/signup', 'doSignUpForm')->name('signUp.submit');
 });
 
-/************SignUp*************/
-Route::get('/signup', [PokemonMasterController::class, 'showSignUpForm'])->name('signUp');
-Route::post('/signup', [PokemonMasterController::class, 'doSignUpForm'])->name('signUp.submit');
 
-//
 // Authenticated Routes Group
 Route::middleware(['auth'])->controller(PokemonMasterController::class)->group(function () {
     /******Pokedex*****/

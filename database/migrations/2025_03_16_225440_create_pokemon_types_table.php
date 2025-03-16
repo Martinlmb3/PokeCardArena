@@ -11,15 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('trainers', function (Blueprint $table) {
+        Schema::create('pokemon_types', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->string('name', 30);
-            $table->string('email', 30)->unique();
-            $table->string('password', 60);
-            $table->string('title', 30);
-            $table->string('profile')->nullable();
-            $table->rememberToken();
+            $table->foreignId('pokemon_id')->constrained()->onDelete('cascade');
+            $table->foreignId('type_id')->constrained()->onDelete('cascade');
+            
+            // Add a unique constraint to prevent duplicate relationships
+            $table->unique(['pokemon_id', 'type_id']);
         });
     }
 
@@ -28,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('trainers');
+        Schema::dropIfExists('pokemon_types');
     }
 };

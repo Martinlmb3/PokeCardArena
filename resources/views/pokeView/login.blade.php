@@ -1,6 +1,6 @@
 <x-layout>
     <main class="bg-gray-200 p-5">
-        <div class="bg-white mx-auto max-w-7xl px-8 py-6 w-150 mt-4 sm:px-6 lg:px-8 shadow-xl">
+        <section class="bg-white mx-auto max-w-7xl px-8 py-6 w-150 mt-4 sm:px-6 lg:px-8 shadow-xl">
             <h1 class="text-center">Login</h1>
             <form method="POST" action="{{ route('login.submit') }}">
             @csrf
@@ -17,11 +17,11 @@
                     <label for="password">Password</label>
                     <input type="password" name="password" class="form-control" id="password" required>
                     @error('password')
-                    <div class="text-red-500">{{ $message }}</div>
+                        <div class="text-red-500">{{ $message }}</div>
                     @enderror
                 </div>
                 <button type="submit" class="btn btn-primary mt-3">Submit</button>
             </form>
-        </div>
+        </section>
     </main>
 </x-layout>
