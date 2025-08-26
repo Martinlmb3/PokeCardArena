@@ -22,24 +22,9 @@ class SignUpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:30',
-            'email' => 'required|email|min:6|max:30',
-            'password' => 'required|min:6|max:60',
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'name.required' => 'Please enter your name',
-            'name.max' => 'Name cannot be longer than 30 characters',
-            'email.required' => 'Please enter your email address',
-            'email.email' => 'Please enter a valid email address',
-            'email.min' => 'Email must be at least 6 characters',
-            'email.max' => 'Email cannot be longer than 30 characters',
-            'password.required' => 'Please enter a password',
-            'password.min' => 'Password must be at least 6 characters',
-            'password.max' => 'Password cannot be longer than 60 characters',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:pokemasters,email',
+            'password' => 'required|min:6|confirmed',
         ];
     }
 }
