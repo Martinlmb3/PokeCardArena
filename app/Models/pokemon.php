@@ -9,4 +9,13 @@ class pokemon extends Model
 {
     /** @use HasFactory<\Database\Factories\PokemonFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'image', 
+        'is_legendary',
+        'is_mythical',
+        'capture_at',
+        'pokedex_id'
+    ];
 }

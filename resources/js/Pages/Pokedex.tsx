@@ -1,113 +1,84 @@
-import React, { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import React from 'react';
+import { Head } from '@inertiajs/react';
 import Layout from '../Components/Layout';
 
-interface Pokemon {
-    id: number;
-    name: string;
-    type: string;
-    image?: string;
-    color: string;
-}
-
 interface PokedexProps {
-    pokemon?: Pokemon[];
+    user?: {
+        name: string;
+        title: string;
+        experience: number;
+        experienceToNext: number;
+        totalPokemon: number;
+        mythicalCount: number;
+        legendaryCount: number;
+        profileImage?: string;
+    };
 }
 
-export default function Pokedex({ pokemon = [] }: PokedexProps) {
-    const { data, setData, get, processing } = useForm({
-        search: '',
-        type: '',
-    });
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        get('/pokedex');
+export default function Pokedex({ user }: PokedexProps) {
+    const defaultUser = {
+        name: 'PLAYER_NAME',
+        title: 'POKEMASTER',
+        experience: 500,
+        experienceToNext: 1000,
+        totalPokemon: 45,
+        mythicalCount: 42,
+        legendaryCount: 3,
+        profileImage: '/images/profiles/pp.png'
     };
 
-    const pokemonTypes = [
-        'fire', 'water', 'grass', 'electric', 'ice', 'fighting',
-        'poison', 'ground', 'flying', 'psychic', 'bug', 'rock',
-        'ghost', 'dragon', 'dark', 'steel', 'fairy'
-    ];
+    const userData = user || defaultUser;
 
-    const samplePokemon: Pokemon[] = [
-        { id: 1, name: 'Name', type: 'Type', color: 'bg-green-500' },
-        { id: 2, name: 'Name', type: 'Type', color: 'bg-blue-950' },
-        { id: 3, name: 'Name', type: 'Type', color: 'bg-purple-500' },
-        { id: 4, name: 'Name', type: 'Type', color: 'bg-orange-200' },
-        { id: 5, name: 'Name', type: 'Type', color: 'bg-yellow-200' },
-        { id: 6, name: 'Name', type: 'Type', color: 'bg-pink-100' },
-        { id: 7, name: 'Name', type: 'Type', color: 'bg-orange-200' },
-        { id: 8, name: 'Name', type: 'Type', color: 'bg-yellow-200' },
-        { id: 9, name: 'Name', type: 'Type', color: 'bg-pink-100' },
-        { id: 10, name: 'Name', type: 'Type', color: 'bg-orange-200' },
-        { id: 11, name: 'Name', type: 'Type', color: 'bg-yellow-200' },
-        { id: 12, name: 'Name', type: 'Type', color: 'bg-pink-100' },
-    ];
-
-    const displayPokemon = pokemon.length > 0 ? pokemon : samplePokemon;
+    // Calculate progress percentage for rank up (assuming 1500 is max XP needed)
+    const totalXPNeeded = 1500;
+    const currentXP = userData.experience;
+    const progressPercentage = Math.min((currentXP / totalXPNeeded) * 100, 100);
 
     return (
         <Layout>
             <Head title="Pokédex - PokéCard Arena" />
             <main className="bg-gray-200 p-5">
-                <article className="flex m-auto p-5 rounded bg-white w-full max-w-3xl">
-                    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-center gap-4 w-full">
-                        <div className="form-group w-full sm:flex-1">
-                            <label htmlFor="search" className="sr-only">Search Pokémon</label>
-                            <input 
-                                type="text"
-                                className="form-control w-full"
-                                name="search"
-                                id="search"
-                                placeholder="Search Pokémon..."
-                                value={data.search}
-                                onChange={(e) => setData('search', e.target.value)}
+                <section className="flex flex-col mt-5 mx-auto max-w-4xl bg-white shadow-xl p-4">
+                    <h1 className="text-center text-2xl font-bold mb-4">
+                        Hello {userData.name}
+                    </h1>
+                    <div className="flex flex-col sm:flex-row justify-evenly items-center gap-4">
+                        <article className="flex flex-col space-y-2">
+                            <h3 className="text-lg font-semibold">Title: <span className="text-blue-600">{userData.title}</span></h3>
+                            <h3 className="text-lg">You have gained <span className="text-green-600 font-bold">{userData.experience}XP</span></h3>
+                            <h3 className="text-lg">You have <span className="text-purple-600 font-bold">{userData.totalPokemon}</span> Pokémon</h3>
+                            <h3 className="text-lg text-red-600">You need <span className="font-bold">{userData.experienceToNext}xp</span> to rank up</h3>
+                            
+                            {/* XP Progress Bar */}
+                            <div className="mt-3">
+                                <div className="flex justify-between text-sm text-gray-600 mb-1">
+                                    <span>XP Progress</span>
+                                    <span>{currentXP}/{totalXPNeeded}</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-3">
+                                    <div 
+                                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-300"
+                                        style={{ width: `${progressPercentage}%` }}
+                                    ></div>
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1 text-center">
+                                    {progressPercentage.toFixed(1)}% Complete
+                                </div>
+                            </div>
+
+                            <div className="mt-4 space-y-1">
+                                <h4 className="text-md">Mythical Pokémon: <span className="text-yellow-500 font-bold">{userData.mythicalCount}</span></h4>
+                                <h4 className="text-md">Legendary Pokémon: <span className="text-orange-500 font-bold">{userData.legendaryCount}</span></h4>
+                            </div>
+                        </article>
+                        <article className="w-32 sm:w-40">
+                            <img 
+                                src={userData.profileImage} 
+                                alt={`${userData.name} profile`}
+                                className="w-full h-auto rounded-lg shadow-lg"
                             />
-                        </div>
-                        <div className="form-group w-full sm:w-48">
-                            <label htmlFor="type" className="sr-only">Type</label>
-                            <select 
-                                className="form-control w-full" 
-                                name="type" 
-                                id="type"
-                                value={data.type}
-                                onChange={(e) => setData('type', e.target.value)}
-                            >
-                                <option value="" disabled>Select Type</option>
-                                {pokemonTypes.map(type => (
-                                    <option key={type} value={type}>
-                                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <button 
-                            type="submit" 
-                            className="btn btn-primary w-full sm:w-32"
-                            disabled={processing}
-                        >
-                            {processing ? 'Searching...' : 'Search'}
-                        </button>
-                    </form>
-                </article>
-                <section className="flex flex-col sm:flex-row sm:flex-wrap mt-5 mx-auto max-w-4xl bg-white justify-evenly shadow-xl p-4">
-                    {displayPokemon.map((poke) => (
-                        <Link 
-                            key={poke.id}
-                            href={`/pokemon/${poke.id}`} 
-                            className="w-full sm:w-auto flex justify-center"
-                        >
-                            <article className={`w-full sm:w-48 h-60 my-2 sm:m-5 ${poke.color} p-4 rounded`}>
-                                <p className="font-semibold">{poke.name}</p>
-                                <p className="text-sm">{poke.type}</p>
-                                {poke.image && (
-                                    <img src={poke.image} alt={`${poke.name} pokémon`} className="w-full h-32 object-contain mt-2" />
-                                )}
-                            </article>
-                        </Link>
-                    ))}
+                        </article>
+                    </div>
                 </section>
             </main>
         </Layout>

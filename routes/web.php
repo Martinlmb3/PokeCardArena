@@ -20,21 +20,17 @@ Route::get('/signup', [PokemonMasterController::class, 'showSignUpForm'])->name(
 Route::post('/signup', [PokemonMasterController::class, 'doSignUpForm'])->name('signUp');
 //
 // Public routes for unauthenticated pages
-Route::get('/pokedex', function () {
-    return Inertia::render('Pokedex');
-})->name('pokedex');
+Route::get('/pokedex', [PokemonMasterController::class, 'pokedex'])->name('pokedex');
 
-Route::get('/pokemonCenter', function () {
-    return Inertia::render('PokemonCenter');
-})->name('pokemonCenter');
+Route::get('/pokemonCenter', [PokemonMasterController::class, 'pokemonCenter'])->name('pokemonCenter')->middleware('auth');
 
-Route::get('/myPokemon', function () {
-    return Inertia::render('MyPokemon');
-})->name('myPokemon');
+Route::get('/myPokemon', [PokemonMasterController::class, 'myPokemon'])->name('myPokemon')->middleware('auth');
 
 Route::get('/profile', function () {
-    return Inertia::render('Profile');
-})->name('profile');
+    return Inertia::render('Profile', [
+        'user' => auth()->user()
+    ]);
+})->name('profile')->middleware('auth');
 
 Route::post('/logout', [PokemonMasterController::class, 'logout'])->name('logout');
 
@@ -44,7 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [PokemonMasterController::class, 'update'])->name('profile.update');
     
     /******PokemonCenter*****/
-    Route::patch('/pokemonCenter', [PokemonMasterController::class, 'add'])->name('pokemon.center');
+    Route::post('/pokemon/catch', [PokemonMasterController::class, 'catchPokemon'])->name('pokemon.catch');
 });
 
 require __DIR__ . '/auth.php';

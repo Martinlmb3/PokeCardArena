@@ -28,21 +28,21 @@ export default function Layout({ children }: LayoutProps) {
                                 </div>
                                 <div className="hidden md:block">
                                     <div className="ml-10 flex items-baseline space-x-4">
-                                        <Link 
-                                            href="/pokedex" 
-                                            className="rounded-md bg-red-900 px-3 py-2 text-sm font-medium text-white" 
+                                        <Link
+                                            href="/pokedex"
+                                            className="rounded-md bg-red-900 px-3 py-2 text-sm font-medium text-white"
                                             aria-current="page"
                                         >
                                             Pokédex
                                         </Link>
-                                        <Link 
-                                            href="/pokemonCenter" 
+                                        <Link
+                                            href="/pokemonCenter"
                                             className="rounded-md px-3 py-2 text-sm font-medium hover:bg-red-900 text-white no-underline"
                                         >
                                             Pokémon Center
                                         </Link>
-                                        <Link 
-                                            href="/myPokemon" 
+                                        <Link
+                                            href="/myPokemon"
                                             className="rounded-md px-3 py-2 text-sm font-medium hover:bg-red-900 text-white no-underline"
                                         >
                                             My Pokémon
@@ -51,55 +51,37 @@ export default function Layout({ children }: LayoutProps) {
                                 </div>
                             </div>
                             <div className="hidden md:block">
-                                <div className="ml-4 flex items-center md:ml-6">
+                                <div className="ml-4 flex items-center md:ml-6 space-x-4">
                                     {auth?.user ? (
-                                        <div className="relative ml-3">
-                                            <div>
-                                                <button 
-                                                    type="button" 
-                                                    className="relative flex max-w-xs items-center rounded-full bg-red-800 text-sm focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-hidden" 
-                                                    id="user-menu-button" 
-                                                    aria-expanded="false" 
-                                                    aria-haspopup="true"
+                                        <>
+                                            <Link
+                                                href="/profile"
+                                                className="relative flex max-w-xs items-center rounded-full bg-red-800 text-sm focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-hidden hover:bg-red-700 transition-colors"
+                                            >
+                                                <span className="absolute -inset-1.5"></span>
+                                                <span className="sr-only">Your profile</span>
+                                                <img className="size-8 rounded-full" src="/images/profiles/pp.png" alt="" />
+                                            </Link>
+                                            <form onSubmit={handleLogout}>
+                                                <button
+                                                    type="submit"
+                                                    className="rounded-md px-3 py-2 text-sm font-medium text-white hover:bg-red-900 transition-colors"
                                                 >
-                                                    <span className="absolute -inset-1.5"></span>
-                                                    <span className="sr-only">Open user menu</span>
-                                                    <img className="size-8 rounded-full" src="/images/profiles/pp.png" alt="" />
+                                                    Logout
                                                 </button>
-                                            </div>
-                                            <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 ring-1 shadow-lg ring-black/5 focus:outline-hidden" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabIndex={-1}>
-                                                <Link 
-                                                    href="/profile" 
-                                                    className="block px-4 py-2 text-sm text-gray-700 no-underline" 
-                                                    role="menuitem" 
-                                                    tabIndex={-1} 
-                                                    id="user-menu-item-0"
-                                                >
-                                                    Your Profile
-                                                </Link>
-                                                <form onSubmit={handleLogout}>
-                                                    <button 
-                                                        type="submit"
-                                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                                                        role="menuitem" 
-                                                        tabIndex={-1} 
-                                                        id="user-menu-item-2"
-                                                    >
-                                                        Sign out
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
+                                            </form>
+                                        </>
+
                                     ) : (
                                         <div className="flex space-x-4">
-                                            <Link 
-                                                href="/login" 
+                                            <Link
+                                                href="/login"
                                                 className="rounded-md px-3 py-2 text-sm font-medium text-white hover:bg-red-900"
                                             >
                                                 Login
                                             </Link>
-                                            <Link 
-                                                href="/signup" 
+                                            <Link
+                                                href="/signup"
                                                 className="rounded-md bg-red-900 px-3 py-2 text-sm font-medium text-white hover:bg-red-800"
                                             >
                                                 Sign Up
@@ -109,10 +91,10 @@ export default function Layout({ children }: LayoutProps) {
                                 </div>
                             </div>
                             <div className="-mr-2 flex md:hidden">
-                                <button 
-                                    type="button" 
-                                    className="relative inline-flex items-center justify-center rounded-md bg-red-900 p-2 text-gray-400 hover:bg-red-700 hover:text-white focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-hidden" 
-                                    aria-controls="mobile-menu" 
+                                <button
+                                    type="button"
+                                    className="relative inline-flex items-center justify-center rounded-md bg-red-900 p-2 text-gray-400 hover:bg-red-700 hover:text-white focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 focus:outline-hidden"
+                                    aria-controls="mobile-menu"
                                     aria-expanded="false"
                                 >
                                     <span className="absolute -inset-0.5"></span>
@@ -129,33 +111,43 @@ export default function Layout({ children }: LayoutProps) {
                     </div>
                     <div className="md:hidden" id="mobile-menu">
                         <div className="space-y-1 px-2 pt-2 pb-3 sm:px-3">
-                            <Link 
-                                href="/pokedex" 
-                                className="block rounded-md bg-red-900 px-3 py-2 text-base font-medium text-white" 
+                            <Link
+                                href="/pokedex"
+                                className="block rounded-md bg-red-900 px-3 py-2 text-base font-medium text-white"
                                 aria-current="page"
                             >
                                 Pokédex
                             </Link>
-                            <Link 
-                                href="/myPokemon" 
+                            <Link
+                                href="/myPokemon"
                                 className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white no-underline"
                             >
                                 My Pokémon
                             </Link>
-                            <Link 
-                                href="/pokemonCenter" 
+                            <Link
+                                href="/pokemonCenter"
                                 className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
                             >
                                 Pokémon Center
                             </Link>
-                            <form onSubmit={handleLogout}>
-                                <button 
-                                    type="submit"
-                                    className="block w-full text-left rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
-                                >
-                                    Log Out
-                                </button>
-                            </form>
+                            {auth?.user && (
+                                <>
+                                    <Link
+                                        href="/profile"
+                                        className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
+                                    >
+                                        Your Profile
+                                    </Link>
+                                    <form onSubmit={handleLogout}>
+                                        <button
+                                            type="submit"
+                                            className="block w-full text-left rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
+                                        >
+                                            Sign out
+                                        </button>
+                                    </form>
+                                </>
+                            )}
                         </div>
                     </div>
                 </nav>
