@@ -38,9 +38,9 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
-# Create SQLite database
-RUN touch /var/www/html/database/database.sqlite \
-    && chown www-data:www-data /var/www/html/database/database.sqlite
+# Ensure database directory exists (database will be created at runtime)
+RUN mkdir -p /var/www/html/database \
+    && chown -R www-data:www-data /var/www/html/database
 
 # Configure Nginx
 RUN echo 'server {\n\
@@ -87,8 +87,14 @@ if [ ! -f /var/www/html/.env ]; then\n\
     php artisan key:generate\n\
 fi\n\
 \n\
-# Run migrations (skip if already migrated)\n\
-php artisan migrate --force || echo "Migrations skipped or already applied"\n\
+# Create SQLite database if it doesn'\''t exist\n\
+if [ ! -f /var/www/html/database/database.sqlite ]; then\n\
+    touch /var/www/html/database/database.sqlite\n\
+    chown www-data:www-data /var/www/html/database/database.sqlite\n\
+fi\n\
+\n\
+# Run migrations\n\
+php artisan migrate --force\n\
 \n\
 # Cache configuration\n\
 php artisan config:cache\n\
