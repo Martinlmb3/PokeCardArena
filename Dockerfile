@@ -48,62 +48,63 @@ RUN echo 'server {\n\
     server_name _;\n\
     root /var/www/html/public;\n\
     index index.php;\n\
-\n\
+    \n\
     location / {\n\
-        try_files $uri $uri/ /index.php?$query_string;\n\
+    try_files $uri $uri/ /index.php?$query_string;\n\
     }\n\
-\n\
+    \n\
     location ~ \.php$ {\n\
-        fastcgi_pass 127.0.0.1:9000;\n\
-        fastcgi_index index.php;\n\
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n\
-        include fastcgi_params;\n\
+    fastcgi_pass 127.0.0.1:9000;\n\
+    fastcgi_index index.php;\n\
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n\
+    include fastcgi_params;\n\
     }\n\
-}' > /etc/nginx/sites-available/default
+    }' > /etc/nginx/sites-available/default
 
 # Configure Supervisor
 RUN echo '[supervisord]\n\
-nodaemon=true\n\
-user=root\n\
-\n\
-[program:php-fpm]\n\
-command=php-fpm\n\
-autostart=true\n\
-autorestart=true\n\
-\n\
-[program:nginx]\n\
-command=nginx -g "daemon off;"\n\
-autostart=true\n\
-autorestart=true' > /etc/supervisor/conf.d/supervisord.conf
+    nodaemon=true\n\
+    user=root\n\
+    \n\
+    [program:php-fpm]\n\
+    command=php-fpm\n\
+    autostart=true\n\
+    autorestart=true\n\
+    \n\
+    [program:nginx]\n\
+    command=nginx -g "daemon off;"\n\
+    autostart=true\n\
+    autorestart=true' > /etc/supervisor/conf.d/supervisord.conf
 
 # Run composer autoload dump
 RUN composer run-script post-autoload-dump
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
-# Set up environment if .env does not exist\n\
-if [ ! -f /var/www/html/.env ]; then\n\
+    # Set up environment if .env does not exist\n\
+    if [ ! -f /var/www/html/.env ]; then\n\
     cp .env.example .env 2>/dev/null || echo "APP_NAME=PokeCardArena\nAPP_ENV=production\nAPP_KEY=\nAPP_DEBUG=false\nAPP_TIMEZONE=UTC\nAPP_URL=${APP_URL:-http://localhost}\nDB_CONNECTION=sqlite\nDB_DATABASE=/var/www/html/database/database.sqlite" > .env\n\
     php artisan key:generate\n\
-fi\n\
-\n\
-# Create SQLite database if it doesn'\''t exist\n\
-if [ ! -f /var/www/html/database/database.sqlite ]; then\n\
+    fi\n\
+    \n\
+    # Remove existing SQLite database to start fresh\n\
+    rm -f /var/www/html/database/database.sqlite\n\
+    \n\
+    # Create new SQLite database\n\
     touch /var/www/html/database/database.sqlite\n\
     chown www-data:www-data /var/www/html/database/database.sqlite\n\
-fi\n\
-\n\
-# Run migrations\n\
-php artisan migrate --force\n\
-\n\
-# Cache configuration\n\
-php artisan config:cache\n\
-php artisan route:cache\n\
-php artisan view:cache\n\
-\n\
-# Start supervisor\n\
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf' > /usr/local/bin/start.sh \
-&& chmod +x /usr/local/bin/start.sh
+    \n\
+    # Run migrations (this will create all tables fresh)\n\
+    php artisan migrate --force\n\
+    \n\
+    # Cache configuration\n\
+    php artisan config:cache\n\
+    php artisan route:cache\n\
+    php artisan view:cache\n\
+    \n\
+    # Start supervisor\n\
+    exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf' > /usr/local/bin/start.sh \
+    && chmod +x /usr/local/bin/start.sh
 
 EXPOSE 80
 
