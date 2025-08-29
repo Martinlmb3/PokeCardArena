@@ -75,6 +75,12 @@ command=nginx -g "daemon off;"\n\
 autostart=true\n\
 autorestart=true' > /etc/supervisor/conf.d/supervisord.conf
 
+# Set up Laravel environment
+RUN cp .env.example .env || echo "APP_NAME=PokeCardArena\nAPP_ENV=production\nAPP_KEY=\nAPP_DEBUG=false\nAPP_TIMEZONE=UTC\nAPP_URL=http://localhost\nDB_CONNECTION=sqlite\nDB_DATABASE=/var/www/html/database/database.sqlite" > .env
+
+# Generate application key
+RUN php artisan key:generate
+
 # Laravel optimization
 RUN composer run-script post-autoload-dump \
     && php artisan config:cache \
