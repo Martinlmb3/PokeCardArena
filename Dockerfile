@@ -64,6 +64,7 @@ RUN echo 'server {\n\
 # Configure Supervisor
 RUN echo '[supervisord]\n\
 nodaemon=true\n\
+user=root\n\
 \n\
 [program:php-fpm]\n\
 command=php-fpm\n\
