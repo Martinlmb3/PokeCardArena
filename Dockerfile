@@ -75,18 +75,29 @@ command=nginx -g "daemon off;"\n\
 autostart=true\n\
 autorestart=true' > /etc/supervisor/conf.d/supervisord.conf
 
-# Set up Laravel environment
-RUN cp .env.example .env || echo "APP_NAME=PokeCardArena\nAPP_ENV=production\nAPP_KEY=\nAPP_DEBUG=false\nAPP_TIMEZONE=UTC\nAPP_URL=http://localhost\nDB_CONNECTION=sqlite\nDB_DATABASE=/var/www/html/database/database.sqlite" > .env
+# Run composer autoload dump
+RUN composer run-script post-autoload-dump
 
-# Generate application key
-RUN php artisan key:generate
-
-# Laravel optimization
-RUN composer run-script post-autoload-dump \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# Create startup script
+RUN echo '#!/bin/bash\n\
+# Set up environment if .env does not exist\n\
+if [ ! -f /var/www/html/.env ]; then\n\
+    cp .env.example .env 2>/dev/null || echo "APP_NAME=PokeCardArena\nAPP_ENV=production\nAPP_KEY=\nAPP_DEBUG=false\nAPP_TIMEZONE=UTC\nAPP_URL=${APP_URL:-http://localhost}\nDB_CONNECTION=sqlite\nDB_DATABASE=/var/www/html/database/database.sqlite" > .env\n\
+    php artisan key:generate\n\
+fi\n\
+\n\
+# Run migrations\n\
+php artisan migrate --force\n\
+\n\
+# Cache configuration\n\
+php artisan config:cache\n\
+php artisan route:cache\n\
+php artisan view:cache\n\
+\n\
+# Start supervisor\n\
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf' > /usr/local/bin/start.sh \
+&& chmod +x /usr/local/bin/start.sh
 
 EXPOSE 80
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+CMD ["/usr/local/bin/start.sh"]
