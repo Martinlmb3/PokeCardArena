@@ -12,7 +12,9 @@ FROM php:8.2-fpm AS backend
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git curl unzip libpq-dev libonig-dev libzip-dev zip \
-    libpng-dev libxml2-dev sqlite3 nginx supervisor \
+    libpng-dev libxml2-dev sqlite3 libsqlite3-dev nginx supervisor \
+    libfreetype6-dev libjpeg62-turbo-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_mysql pdo_sqlite mbstring zip gd xml \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
