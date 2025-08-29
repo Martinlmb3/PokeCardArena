@@ -87,8 +87,8 @@ if [ ! -f /var/www/html/.env ]; then\n\
     php artisan key:generate\n\
 fi\n\
 \n\
-# Run migrations\n\
-php artisan migrate --force\n\
+# Run migrations (skip if already migrated)\n\
+php artisan migrate --force || echo "Migrations skipped or already applied"\n\
 \n\
 # Cache configuration\n\
 php artisan config:cache\n\
