@@ -80,18 +80,35 @@ RUN composer run-script post-autoload-dump
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
-    # Wait for MySQL to be ready\n\
-    echo "Waiting for MySQL connection..."\n\
-    until mysql -h"${DB_HOST}" -u"${DB_USERNAME}" -p"${DB_PASSWORD}" -e "SELECT 1" >/dev/null 2>&1; do\n\
-        echo "MySQL is unavailable - sleeping"\n\
-        sleep 5\n\
-    done\n\
-    echo "MySQL is ready!"\n\
-    \n\
     # Set up environment if .env does not exist\n\
     if [ ! -f /var/www/html/.env ]; then\n\
         cp .env.example .env 2>/dev/null || echo "APP_NAME=PokeCardArena\nAPP_ENV=production\nAPP_KEY=\nAPP_DEBUG=false\nAPP_TIMEZONE=UTC\nAPP_URL=${APP_URL:-http://localhost}" > .env\n\
         php artisan key:generate\n\
+    fi\n\
+    \n\
+    # Check if we are using MySQL and wait for it to be ready\n\
+    if [ "${DB_CONNECTION}" = "mysql" ] && [ -n "${DB_HOST}" ] && [ -n "${DB_USERNAME}" ]; then\n\
+        echo "Waiting for MySQL connection..."\n\
+        MYSQL_PWD="${DB_PASSWORD}" mysql -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -e "SELECT 1" >/dev/null 2>&1\n\
+        MYSQL_STATUS=$?\n\
+        RETRY_COUNT=0\n\
+        MAX_RETRIES=30\n\
+        \n\
+        while [ $MYSQL_STATUS -ne 0 ] && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do\n\
+            echo "MySQL is unavailable (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES) - sleeping"\n\
+            sleep 5\n\
+            MYSQL_PWD="${DB_PASSWORD}" mysql -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -e "SELECT 1" >/dev/null 2>&1\n\
+            MYSQL_STATUS=$?\n\
+            RETRY_COUNT=$((RETRY_COUNT + 1))\n\
+        done\n\
+        \n\
+        if [ $MYSQL_STATUS -eq 0 ]; then\n\
+            echo "MySQL is ready!"\n\
+        else\n\
+            echo "Warning: Could not connect to MySQL after $MAX_RETRIES attempts. Continuing anyway..."\n\
+        fi\n\
+    else\n\
+        echo "Using non-MySQL database or missing MySQL credentials. Skipping MySQL connection check."\n\
     fi\n\
     \n\
     # Run migrations\n\
