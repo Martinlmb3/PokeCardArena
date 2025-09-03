@@ -114,17 +114,24 @@ RUN echo '#!/bin/bash\n\
     # Handle migrations safely\n\
     echo "Setting up database migrations..."\n\
     \n\
-    # Ensure the migrations table exists\n\
-    php artisan migrate:install --force 2>/dev/null || true\n\
-    \n\
-    # Try to run migrations with better error handling\n\
-    echo "Running database migrations..."\n\
-    if php artisan migrate --force 2>&1; then\n\
-        echo "Migrations completed successfully."\n\
+    # Check if we should reset migrations\n\
+    if [ "${DB_RESET_MIGRATIONS}" = "true" ]; then\n\
+        echo "DB_RESET_MIGRATIONS is true. Running fresh migrations..."\n\
+        php artisan migrate:fresh --force\n\
+        echo "Fresh migrations completed. Remember to remove DB_RESET_MIGRATIONS environment variable."\n\
     else\n\
-        echo "Migrations encountered issues. Attempting alternative approach..."\n\
-        # If migrations fail, try to continue - the app might still work\n\
-        echo "Continuing with existing database state..."\n\
+        # Ensure the migrations table exists\n\
+        php artisan migrate:install --force 2>/dev/null || true\n\
+        \n\
+        # Try to run migrations with better error handling\n\
+        echo "Running database migrations..."\n\
+        if php artisan migrate --force 2>&1; then\n\
+            echo "Migrations completed successfully."\n\
+        else\n\
+            echo "Migrations encountered issues. Attempting alternative approach..."\n\
+            # If migrations fail, try to continue - the app might still work\n\
+            echo "Continuing with existing database state..."\n\
+        fi\n\
     fi\n\
     \n\
     # Cache configuration\n\
