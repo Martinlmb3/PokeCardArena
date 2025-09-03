@@ -12,10 +12,10 @@ FROM php:8.2-fpm AS backend
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git curl unzip libpq-dev libonig-dev libzip-dev zip \
-    libpng-dev libxml2-dev sqlite3 libsqlite3-dev nginx supervisor \
-    libfreetype6-dev libjpeg62-turbo-dev \
+    libpng-dev libxml2-dev nginx supervisor \
+    libfreetype6-dev libjpeg62-turbo-dev default-mysql-client \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql pdo_sqlite mbstring zip gd xml \
+    && docker-php-ext-install pdo pdo_mysql mbstring zip gd xml \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
@@ -38,9 +38,8 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
-# Ensure database directory exists (database will be created at runtime)
-RUN mkdir -p /var/www/html/database \
-    && chown -R www-data:www-data /var/www/html/database
+# Create storage directories
+RUN mkdir -p /var/www/html/storage/logs
 
 # Configure Nginx
 RUN echo 'server {\n\
@@ -81,20 +80,21 @@ RUN composer run-script post-autoload-dump
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
+    # Wait for MySQL to be ready\n\
+    echo "Waiting for MySQL connection..."\n\
+    until mysql -h"${DB_HOST}" -u"${DB_USERNAME}" -p"${DB_PASSWORD}" -e "SELECT 1" >/dev/null 2>&1; do\n\
+        echo "MySQL is unavailable - sleeping"\n\
+        sleep 5\n\
+    done\n\
+    echo "MySQL is ready!"\n\
+    \n\
     # Set up environment if .env does not exist\n\
     if [ ! -f /var/www/html/.env ]; then\n\
-    cp .env.example .env 2>/dev/null || echo "APP_NAME=PokeCardArena\nAPP_ENV=production\nAPP_KEY=\nAPP_DEBUG=false\nAPP_TIMEZONE=UTC\nAPP_URL=${APP_URL:-http://localhost}\nDB_CONNECTION=sqlite\nDB_DATABASE=/var/www/html/database/database.sqlite" > .env\n\
-    php artisan key:generate\n\
+        cp .env.example .env 2>/dev/null || echo "APP_NAME=PokeCardArena\nAPP_ENV=production\nAPP_KEY=\nAPP_DEBUG=false\nAPP_TIMEZONE=UTC\nAPP_URL=${APP_URL:-http://localhost}" > .env\n\
+        php artisan key:generate\n\
     fi\n\
     \n\
-    # Remove existing SQLite database to start fresh\n\
-    rm -f /var/www/html/database/database.sqlite\n\
-    \n\
-    # Create new SQLite database\n\
-    touch /var/www/html/database/database.sqlite\n\
-    chown www-data:www-data /var/www/html/database/database.sqlite\n\
-    \n\
-    # Run migrations (this will create all tables fresh)\n\
+    # Run migrations\n\
     php artisan migrate --force\n\
     \n\
     # Cache configuration\n\
