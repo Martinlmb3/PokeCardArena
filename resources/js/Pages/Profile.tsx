@@ -121,7 +121,7 @@ export default function Profile({ user, errors = {}, success }: ProfileProps) {
                         </div>
                         <button
                             type="submit"
-                            className="btn btn-primary"
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 disabled:opacity-50"
                             disabled={processing}
                         >
                             {processing ? 'Updating...' : 'Submit'}

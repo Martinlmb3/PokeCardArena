@@ -6,8 +6,8 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\SignUpRequest;
 use App\Models\Pokemaster;
 use App\Models\Trainer;
-use App\Models\pokemon;
-use App\Models\pokedex;
+use App\Models\Pokemon;
+use App\Models\Pokedex;
 use App\Services\PokemonApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -155,7 +155,7 @@ class PokemonMasterController extends Controller
 
         // Check how many pokemon caught today
         $today = Carbon::today();
-        $pokemonCaughtToday = pokemon::join('pokedexes', 'pokemon.pokedex_id', '=', 'pokedexes.id')
+        $pokemonCaughtToday = Pokemon::join('pokedexes', 'pokemon.pokedex_id', '=', 'pokedexes.id')
             ->where('pokedexes.trainer_id', $trainer->id)
             ->whereDate('pokemon.capture_at', $today)
             ->count();
@@ -183,7 +183,7 @@ class PokemonMasterController extends Controller
 
         // Check daily limit
         $today = Carbon::today();
-        $pokemonCaughtToday = pokemon::join('pokedexes', 'pokemon.pokedex_id', '=', 'pokedexes.id')
+        $pokemonCaughtToday = Pokemon::join('pokedexes', 'pokemon.pokedex_id', '=', 'pokedexes.id')
             ->where('pokedexes.trainer_id', $trainer->id)
             ->whereDate('pokemon.capture_at', $today)
             ->count();
@@ -205,7 +205,7 @@ class PokemonMasterController extends Controller
         ]);
 
         // Find or create pokedex entry for this trainer
-        $pokedex = pokedex::firstOrCreate(
+        $pokedex = Pokedex::firstOrCreate(
             ['trainer_id' => $trainer->id],
             [
                 'trainer_id' => $trainer->id,
@@ -217,7 +217,7 @@ class PokemonMasterController extends Controller
         );
 
         // Save pokemon to database
-        $pokemon = pokemon::create([
+        $pokemon = Pokemon::create([
             'name' => $pokemonData['name'],
             'image' => $pokemonData['image'],
             'is_legendary' => $pokemonData['is_legendary'] ? 'true' : 'false',
