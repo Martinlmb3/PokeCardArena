@@ -27,14 +27,17 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Copy composer files and install PHP dependencies
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-
-# Copy package.json and install Node dependencies
-COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
 
 # Copy application code
 COPY . .
+
+# Run composer scripts now that artisan exists
+RUN composer run-script post-autoload-dump
+
+# Copy package.json and install Node dependencies  
+COPY package.json package-lock.json* ./
+RUN npm ci --only=production
 
 # Build frontend assets
 RUN npm run build
