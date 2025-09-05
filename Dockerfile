@@ -25,16 +25,19 @@ RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd zip
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy composer files and install PHP dependencies
+# Copy composer files and install PHP dependencies (without classmap initially)
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
+RUN composer install --no-dev --no-scripts --no-interaction
 
 # Copy application code AFTER composer install
 COPY . .
 
-# Regenerate autoloader with production optimizations and verify classes
-RUN composer dump-autoload --optimize --classmap-authoritative --no-dev \
-    && php -r "require_once 'vendor/autoload.php'; if (!class_exists('App\\Models\\Pokemaster')) { echo 'ERROR: Pokemaster class not found!'; exit(1); } echo 'SUCCESS: Pokemaster class loaded correctly';"
+# Regenerate autoloader with production optimizations
+# Use classmap-authoritative to ensure all classes are properly mapped
+RUN composer dump-autoload --optimize --classmap-authoritative --no-dev
+
+# Verify that critical classes can be loaded
+RUN php -r "require_once 'vendor/autoload.php'; if (!class_exists('App\\Models\\Pokemaster')) { echo 'ERROR: Pokemaster class not found!'; exit(1); } echo 'SUCCESS: Pokemaster class loaded correctly';"
 
 # Install Node dependencies and build frontend
 COPY package.json package-lock.json* ./
