@@ -26,29 +26,31 @@ export default function Layout({ children }: LayoutProps) {
                                         <img className="h-10 w-auto" src="/images/logos/pokécard-logo.png" alt="pokécard-logo" />
                                     </Link>
                                 </div>
-                                <div className="hidden md:block">
-                                    <div className="ml-10 flex items-baseline space-x-4">
-                                        <Link
-                                            href="/pokedex"
-                                            className="rounded-md bg-red-900 px-3 py-2 text-sm font-medium text-white"
-                                            aria-current="page"
-                                        >
-                                            Pokédex
-                                        </Link>
-                                        <Link
-                                            href="/pokemonCenter"
-                                            className="rounded-md px-3 py-2 text-sm font-medium hover:bg-red-900 text-white no-underline"
-                                        >
-                                            Pokémon Center
-                                        </Link>
-                                        <Link
-                                            href="/myPokemon"
-                                            className="rounded-md px-3 py-2 text-sm font-medium hover:bg-red-900 text-white no-underline"
-                                        >
-                                            My Pokémon
-                                        </Link>
+                                {auth?.user && (
+                                    <div className="hidden md:block">
+                                        <div className="ml-10 flex items-baseline space-x-4">
+                                            <Link
+                                                href="/pokedex"
+                                                className="rounded-md bg-red-900 px-3 py-2 text-sm font-medium text-white"
+                                                aria-current="page"
+                                            >
+                                                Pokédex
+                                            </Link>
+                                            <Link
+                                                href="/pokemonCenter"
+                                                className="rounded-md px-3 py-2 text-sm font-medium hover:bg-red-900 text-white no-underline"
+                                            >
+                                                Pokémon Center
+                                            </Link>
+                                            <Link
+                                                href="/myPokemon"
+                                                className="rounded-md px-3 py-2 text-sm font-medium hover:bg-red-900 text-white no-underline"
+                                            >
+                                                My Pokémon
+                                            </Link>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                             <div className="hidden md:block">
                                 <div className="ml-4 flex items-center md:ml-6 space-x-4">
@@ -109,47 +111,45 @@ export default function Layout({ children }: LayoutProps) {
                             </div>
                         </div>
                     </div>
-                    <div className="md:hidden" id="mobile-menu">
-                        <div className="space-y-1 px-2 pt-2 pb-3 sm:px-3">
-                            <Link
-                                href="/pokedex"
-                                className="block rounded-md bg-red-900 px-3 py-2 text-base font-medium text-white"
-                                aria-current="page"
-                            >
-                                Pokédex
-                            </Link>
-                            <Link
-                                href="/myPokemon"
-                                className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white no-underline"
-                            >
-                                My Pokémon
-                            </Link>
-                            <Link
-                                href="/pokemonCenter"
-                                className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
-                            >
-                                Pokémon Center
-                            </Link>
-                            {auth?.user && (
-                                <>
-                                    <Link
-                                        href="/profile"
-                                        className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
+                    {auth?.user && (
+                        <div className="md:hidden" id="mobile-menu">
+                            <div className="space-y-1 px-2 pt-2 pb-3 sm:px-3">
+                                <Link
+                                    href="/pokedex"
+                                    className="block rounded-md bg-red-900 px-3 py-2 text-base font-medium text-white"
+                                    aria-current="page"
+                                >
+                                    Pokédex
+                                </Link>
+                                <Link
+                                    href="/myPokemon"
+                                    className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white no-underline"
+                                >
+                                    My Pokémon
+                                </Link>
+                                <Link
+                                    href="/pokemonCenter"
+                                    className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
+                                >
+                                    Pokémon Center
+                                </Link>
+                                <Link
+                                    href="/profile"
+                                    className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
+                                >
+                                    Your Profile
+                                </Link>
+                                <form onSubmit={handleLogout}>
+                                    <button
+                                        type="submit"
+                                        className="block w-full text-left rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
                                     >
-                                        Your Profile
-                                    </Link>
-                                    <form onSubmit={handleLogout}>
-                                        <button
-                                            type="submit"
-                                            className="block w-full text-left rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
-                                        >
-                                            Sign out
-                                        </button>
-                                    </form>
-                                </>
-                            )}
+                                        Sign out
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </nav>
             </header>
             {children}
