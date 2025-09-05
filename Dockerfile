@@ -91,7 +91,14 @@ RUN echo '#!/bin/bash\n\
     # Set up environment if .env does not exist\n\
     if [ ! -f /var/www/html/.env ]; then\n\
         cp .env.example .env 2>/dev/null || echo "APP_NAME=PokeCardArena\nAPP_ENV=production\nAPP_KEY=\nAPP_DEBUG=false\nAPP_TIMEZONE=UTC\nAPP_URL=${APP_URL:-http://localhost}" > .env\n\
-        php artisan key:generate\n\
+    fi\n\
+    \n\
+    # Always ensure APP_KEY is generated\n\
+    if ! grep -q "^APP_KEY=base64:" .env; then\n\
+        echo "Generating application key..."\n\
+        php artisan key:generate --force\n\
+    else\n\
+        echo "Application key already exists"\n\
     fi\n\
     \n\
     # Configure sessions based on available services\n\
@@ -106,13 +113,8 @@ RUN echo '#!/bin/bash\n\
         echo "" >> .env\n\
         echo "SESSION_DRIVER=database" >> .env\n\
         echo "SESSION_CONNECTION=${DB_CONNECTION}" >> .env\n\
-        # Check if sessions table exists, create if needed\n\
-        if ! php artisan tinker --execute="echo Schema::hasTable('"'"'sessions'"'"') ? '"'"'exists'"'"' : '"'"'missing'"'"';" 2>/dev/null | grep -q "exists"; then\n\
-            echo "Creating sessions table..."\n\
-            php artisan session:table --force 2>/dev/null || true\n\
-        else\n\
-            echo "Sessions table already exists, skipping creation"\n\
-        fi\n\
+        # Database sessions fallback - but prefer Redis\n\
+        echo "Database sessions configured as fallback (Redis preferred)"\n\
     else\n\
         echo "Using file-based sessions as fallback"\n\
         echo "" >> .env\n\
@@ -169,14 +171,8 @@ RUN echo '#!/bin/bash\n\
             echo "Continuing with existing database state..."\n\
         fi\n\
         \n\
-        # Run session table migration if using database sessions\n\
-        if grep -q "SESSION_DRIVER=database" .env; then\n\
-            echo "Ensuring sessions table exists for database session storage..."\n\
-            # Check if sessions table migration exists and run it\n\
-            if ls database/migrations/*create_sessions_table.php 1> /dev/null 2>&1; then\n\
-                php artisan migrate --path=database/migrations --force 2>/dev/null || echo "Session migration already applied"\n\
-            fi\n\
-        fi\n\
+        # Skip sessions table migration since it may conflict\n\
+        echo "Skipping sessions table migration to avoid conflicts - using Redis sessions"\n\
     fi\n\
     \n\
     # Cache configuration\n\

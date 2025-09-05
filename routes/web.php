@@ -17,7 +17,7 @@ Route::get('/login', [PokemonMasterController::class, 'showLoginForm'])->name('l
 Route::post('/login', [PokemonMasterController::class, 'doLoginForm'])->name('login.submit');
 /************SignUp*************/
 Route::get('/signup', [PokemonMasterController::class, 'showSignUpForm'])->name('signUp');
-Route::post('/signup', [PokemonMasterController::class, 'doSignUpForm'])->name('signUp');
+Route::post('/signup', [PokemonMasterController::class, 'doSignUpForm'])->name('signUp.submit');
 //
 // Public routes for unauthenticated pages
 Route::get('/pokedex', [PokemonMasterController::class, 'pokedex'])->name('pokedex');
