@@ -23,7 +23,7 @@ export default function Layout({ children }: LayoutProps) {
                             <div className="flex items-center">
                                 <div className="shrink-0">
                                     <Link href="/" className="hover:opacity-75 transition-opacity duration-150">
-                                        <img className="size-15" src="/images/logos/pokécard-logo.png" alt="pokécard-logo" />
+                                        <img className="h-10 w-auto" src="/images/logos/pokécard-logo.png" alt="pokécard-logo" />
                                     </Link>
                                 </div>
                                 <div className="hidden md:block">
@@ -156,12 +156,12 @@ export default function Layout({ children }: LayoutProps) {
             <footer className="block bottom-0 w-full bg-white" style={{ color: '#6c757d' }}>
                 <div className="max-w-7xl mx-auto px-4 py-2">
                     <ul className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 border-b pb-2">
-                        <li className="nav-link text-muted hover:text-red-900 cursor-pointer transition-colors duration-200">Home</li>
-                        <li className="nav-link text-muted hover:text-red-900 cursor-pointer transition-colors duration-200">Pay To Win</li>
-                        <li className="nav-link text-muted hover:text-red-900 cursor-pointer transition-colors duration-200">FAQs</li>
-                        <li className="nav-link text-muted hover:text-red-900 cursor-pointer transition-colors duration-200">About</li>
+                        <li className="text-gray-600 hover:text-red-900 cursor-pointer transition-colors duration-200">Home</li>
+                        <li className="text-gray-600 hover:text-red-900 cursor-pointer transition-colors duration-200">Pay To Win</li>
+                        <li className="text-gray-600 hover:text-red-900 cursor-pointer transition-colors duration-200">FAQs</li>
+                        <li className="text-gray-600 hover:text-red-900 cursor-pointer transition-colors duration-200">About</li>
                     </ul>
-                    <p className="text-center text-muted my-2 text-xs sm:text-sm">©PokéCard Arena 2025</p>
+                    <p className="text-center text-gray-600 my-2 text-xs sm:text-sm">©PokéCard Arena 2025</p>
                 </div>
             </footer>
         </div>
