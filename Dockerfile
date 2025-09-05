@@ -61,26 +61,47 @@ RUN echo '<VirtualHost *:80>\n\
     DocumentRoot /var/www/html/public\n\
     \n\
     <Directory /var/www/html/public>\n\
-        AllowOverride All\n\
-        Require all granted\n\
+    AllowOverride All\n\
+    Require all granted\n\
     </Directory>\n\
     \n\
     ErrorLog ${APACHE_LOG_DIR}/error.log\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+    </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-# Copy .env.example to .env if .env doesn't exist
-RUN if [ ! -f .env ]; then cp .env.example .env; fi
-
-# Generate application key and run initial setup
-RUN php artisan key:generate --force \
-    && php artisan migrate --force \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# Create a startup script for runtime setup
+RUN echo '#!/bin/bash\n\
+    if [ ! -f .env ]; then\n\
+    echo "Creating .env file from environment variables"\n\
+    echo "APP_NAME=${APP_NAME:-PokeCardArena}" > .env\n\
+    echo "APP_ENV=${APP_ENV:-production}" >> .env\n\
+    echo "APP_KEY=" >> .env\n\
+    echo "APP_DEBUG=${APP_DEBUG:-false}" >> .env\n\
+    echo "APP_URL=${APP_URL}" >> .env\n\
+    echo "" >> .env\n\
+    echo "DB_CONNECTION=${DB_CONNECTION:-pgsql}" >> .env\n\
+    echo "DB_URL=${DATABASE_URL}" >> .env\n\
+    fi\n\
+    \n\
+    # Generate app key if not set\n\
+    if ! grep -q "APP_KEY=base64:" .env; then\n\
+    php artisan key:generate --force\n\
+    fi\n\
+    \n\
+    # Run migrations\n\
+    php artisan migrate --force\n\
+    \n\
+    # Cache config\n\
+    php artisan config:cache\n\
+    php artisan route:cache\n\
+    php artisan view:cache\n\
+    \n\
+    # Start Apache\n\
+    apache2-foreground\n\
+    ' > /usr/local/bin/start.sh && chmod +x /usr/local/bin/start.sh
 
 # Expose port 80
 EXPOSE 80
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Start with our custom script
+CMD ["/usr/local/bin/start.sh"]
