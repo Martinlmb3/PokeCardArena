@@ -71,7 +71,7 @@ RUN echo '[supervisord]\n\
     command=redis-server --bind 127.0.0.1 --port 6379\n\
     autostart=true\n\
     autorestart=true\n\
-    user=redis\n\
+    user=root\n\
     \n\
     [program:php-fpm]\n\
     command=php-fpm\n\
@@ -94,13 +94,22 @@ RUN echo '#!/bin/bash\n\
     fi\n\
     \n\
     # Force PostgreSQL connection if DATABASE_URL is available (Render provides this)\n\
+    echo "Checking for database configuration..."\n\
+    echo "DATABASE_URL: ${DATABASE_URL:-not set}"\n\
+    echo "DB_HOST: ${DB_HOST:-not set}"\n\
+    echo "DB_CONNECTION: ${DB_CONNECTION:-not set}"\n\
+    \n\
     if [ -n "${DATABASE_URL}" ]; then\n\
         echo "DATABASE_URL found - configuring PostgreSQL connection"\n\
+        # Remove any existing DB config to avoid conflicts\n\
+        grep -v "^DB_" .env > .env.tmp && mv .env.tmp .env\n\
         echo "" >> .env\n\
         echo "DB_CONNECTION=pgsql" >> .env\n\
         echo "DB_URL=${DATABASE_URL}" >> .env\n\
     elif [ -n "${DB_HOST}" ] && [ "${DB_CONNECTION}" != "sqlite" ]; then\n\
         echo "External database configuration detected"\n\
+        # Remove any existing DB config to avoid conflicts\n\
+        grep -v "^DB_" .env > .env.tmp && mv .env.tmp .env\n\
         echo "" >> .env\n\
         echo "DB_CONNECTION=${DB_CONNECTION:-pgsql}" >> .env\n\
         echo "DB_HOST=${DB_HOST}" >> .env\n\
@@ -110,12 +119,20 @@ RUN echo '#!/bin/bash\n\
         echo "DB_PASSWORD=${DB_PASSWORD}" >> .env\n\
     else\n\
         echo "No external database found - using SQLite fallback"\n\
+        # Remove any existing DB config to avoid conflicts\n\
+        grep -v "^DB_" .env > .env.tmp && mv .env.tmp .env\n\
         echo "" >> .env\n\
         echo "DB_CONNECTION=sqlite" >> .env\n\
         echo "DB_DATABASE=/var/www/html/database/database.sqlite" >> .env\n\
+        # Create database directory and file\n\
+        mkdir -p /var/www/html/database\n\
         touch /var/www/html/database/database.sqlite\n\
         chmod 664 /var/www/html/database/database.sqlite\n\
     fi\n\
+    \n\
+    # Show final database configuration\n\
+    echo "Final database configuration:"\n\
+    grep "^DB_" .env || echo "No DB configuration found in .env"\n\
     \n\
     # Always ensure APP_KEY is generated\n\
     if ! grep -q "^APP_KEY=base64:" .env; then\n\
