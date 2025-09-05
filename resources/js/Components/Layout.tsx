@@ -23,7 +23,7 @@ export default function Layout({ children }: LayoutProps) {
                             <div className="flex items-center">
                                 <div className="shrink-0">
                                     <Link href="/" className="hover:opacity-75 transition-opacity duration-150">
-                                        <img className="h-10 w-auto" src="/images/logos/pokécard-logo.png" alt="pokécard-logo" />
+                                        <img className="h-8 w-auto" src="/images/logos/pokécard-logo.png" alt="pokécard-logo" />
                                     </Link>
                                 </div>
                                 {auth?.user && (
