@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Exception;
 
 return new class extends Migration
 {
@@ -24,12 +23,12 @@ return new class extends Migration
                 // Try to drop foreign keys if they exist
                 try {
                     $table->dropForeign(['trainer_id']);
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     // Foreign key might not exist, continue
                 }
                 try {
                     $table->dropForeign(['pokemon_id']);
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     // Foreign key might not exist, continue
                 }
             });
@@ -38,7 +37,7 @@ return new class extends Migration
                 Schema::table('pokemon', function (Blueprint $table) {
                     try {
                         $table->dropForeign(['pokedex_id']);
-                    } catch (Exception $e) {
+                    } catch (\Exception $e) {
                         // Foreign key might not exist, continue
                     }
                 });

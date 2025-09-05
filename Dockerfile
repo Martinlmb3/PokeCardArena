@@ -107,8 +107,9 @@ RUN echo '#!/bin/bash\n\
     echo "Waiting for database..."\n\
     sleep 5\n\
     \n\
-    # Run migrations\n\
-    echo "Running migrations..."\n\
+    # Fresh database setup - drop all tables and recreate\n\
+    echo "Setting up fresh database..."\n\
+    php artisan migrate:fresh --force || echo "Fresh migration failed, trying regular migrate..."\n\
     php artisan migrate --force || echo "Migration failed, continuing..."\n\
     \n\
     # Clear and cache config\n\
