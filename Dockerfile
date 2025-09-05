@@ -35,12 +35,15 @@ COPY . .
 # Run composer scripts now that artisan exists
 RUN composer run-script post-autoload-dump
 
-# Copy package.json and install Node dependencies  
+# Copy package.json and install Node dependencies (including dev for build)
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Build frontend assets
 RUN npm run build
+
+# Clean up dev dependencies to reduce image size
+RUN npm ci --omit=dev
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
