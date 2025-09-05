@@ -37,7 +37,7 @@ COPY . .
 RUN composer dump-autoload --optimize --classmap-authoritative --no-dev
 
 # Verify that critical classes can be loaded
-RUN php -r "require_once 'vendor/autoload.php'; if (!class_exists('App\\Models\\Pokemaster')) { echo 'ERROR: Pokemaster class not found!'; exit(1); } echo 'SUCCESS: Pokemaster class loaded correctly';"
+RUN php verify-docker.php
 
 # Install Node dependencies and build frontend
 COPY package.json package-lock.json* ./
@@ -118,7 +118,7 @@ RUN echo '#!/bin/bash\n\
     \n\
     # Verify critical classes are loaded\n\
     echo "Verifying class loading..."\n\
-    php -r "if (!class_exists('App\\\\Models\\\\Pokemaster')) { echo 'ERROR: Pokemaster class not found in production!'; exit(1); } echo 'SUCCESS: All classes verified';" || exit 1\n\
+    php verify-docker.php || exit 1\n\
     \n\
     # Clear and cache config\n\
     php artisan config:clear\n\
