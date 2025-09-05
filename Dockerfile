@@ -93,6 +93,30 @@ RUN echo '#!/bin/bash\n\
         cp .env.example .env 2>/dev/null || echo "APP_NAME=PokeCardArena\nAPP_ENV=production\nAPP_KEY=\nAPP_DEBUG=false\nAPP_TIMEZONE=UTC\nAPP_URL=${APP_URL:-http://localhost}" > .env\n\
     fi\n\
     \n\
+    # Force PostgreSQL connection if DATABASE_URL is available (Render provides this)\n\
+    if [ -n "${DATABASE_URL}" ]; then\n\
+        echo "DATABASE_URL found - configuring PostgreSQL connection"\n\
+        echo "" >> .env\n\
+        echo "DB_CONNECTION=pgsql" >> .env\n\
+        echo "DB_URL=${DATABASE_URL}" >> .env\n\
+    elif [ -n "${DB_HOST}" ] && [ "${DB_CONNECTION}" != "sqlite" ]; then\n\
+        echo "External database configuration detected"\n\
+        echo "" >> .env\n\
+        echo "DB_CONNECTION=${DB_CONNECTION:-pgsql}" >> .env\n\
+        echo "DB_HOST=${DB_HOST}" >> .env\n\
+        echo "DB_PORT=${DB_PORT:-5432}" >> .env\n\
+        echo "DB_DATABASE=${DB_DATABASE}" >> .env\n\
+        echo "DB_USERNAME=${DB_USERNAME}" >> .env\n\
+        echo "DB_PASSWORD=${DB_PASSWORD}" >> .env\n\
+    else\n\
+        echo "No external database found - using SQLite fallback"\n\
+        echo "" >> .env\n\
+        echo "DB_CONNECTION=sqlite" >> .env\n\
+        echo "DB_DATABASE=/var/www/html/database/database.sqlite" >> .env\n\
+        touch /var/www/html/database/database.sqlite\n\
+        chmod 664 /var/www/html/database/database.sqlite\n\
+    fi\n\
+    \n\
     # Always ensure APP_KEY is generated\n\
     if ! grep -q "^APP_KEY=base64:" .env; then\n\
         echo "Generating application key..."\n\
@@ -108,13 +132,10 @@ RUN echo '#!/bin/bash\n\
         echo "" >> .env\n\
         echo "SESSION_DRIVER=redis" >> .env\n\
         echo "SESSION_CONNECTION=default" >> .env\n\
-    elif [ "${DB_CONNECTION}" = "pgsql" ] || [ "${DB_CONNECTION}" = "mysql" ]; then\n\
+    elif grep -q "DB_CONNECTION=pgsql" .env || grep -q "DB_CONNECTION=mysql" .env; then\n\
         echo "Database available - configuring database sessions"\n\
         echo "" >> .env\n\
         echo "SESSION_DRIVER=database" >> .env\n\
-        echo "SESSION_CONNECTION=${DB_CONNECTION}" >> .env\n\
-        # Database sessions fallback - but prefer Redis\n\
-        echo "Database sessions configured as fallback (Redis preferred)"\n\
     else\n\
         echo "Using file-based sessions as fallback"\n\
         echo "" >> .env\n\
@@ -125,28 +146,34 @@ RUN echo '#!/bin/bash\n\
     fi\n\
     \n\
     # Check if we are using PostgreSQL and wait for it to be ready\n\
-    if [ "${DB_CONNECTION}" = "pgsql" ] && [ -n "${DB_HOST}" ] && [ -n "${DB_USERNAME}" ]; then\n\
-        echo "Waiting for PostgreSQL connection..."\n\
-        PGPASSWORD="${DB_PASSWORD}" psql -h"${DB_HOST}" -p"${DB_PORT:-5432}" -U"${DB_USERNAME}" -d"${DB_DATABASE}" -c "SELECT 1;" >/dev/null 2>&1\n\
-        PG_STATUS=$?\n\
-        RETRY_COUNT=0\n\
-        MAX_RETRIES=30\n\
-        \n\
-        while [ $PG_STATUS -ne 0 ] && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do\n\
-            echo "PostgreSQL is unavailable (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES) - sleeping"\n\
-            sleep 5\n\
+    if grep -q "DB_CONNECTION=pgsql" .env; then\n\
+        if [ -n "${DATABASE_URL}" ]; then\n\
+            echo "Using DATABASE_URL for PostgreSQL connection - letting Laravel handle connection"\n\
+        elif [ -n "${DB_HOST}" ] && [ -n "${DB_USERNAME}" ]; then\n\
+            echo "Waiting for PostgreSQL connection..."\n\
             PGPASSWORD="${DB_PASSWORD}" psql -h"${DB_HOST}" -p"${DB_PORT:-5432}" -U"${DB_USERNAME}" -d"${DB_DATABASE}" -c "SELECT 1;" >/dev/null 2>&1\n\
             PG_STATUS=$?\n\
-            RETRY_COUNT=$((RETRY_COUNT + 1))\n\
-        done\n\
-        \n\
-        if [ $PG_STATUS -eq 0 ]; then\n\
-            echo "PostgreSQL is ready!"\n\
+            RETRY_COUNT=0\n\
+            MAX_RETRIES=30\n\
+            \n\
+            while [ $PG_STATUS -ne 0 ] && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do\n\
+                echo "PostgreSQL is unavailable (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES) - sleeping"\n\
+                sleep 5\n\
+                PGPASSWORD="${DB_PASSWORD}" psql -h"${DB_HOST}" -p"${DB_PORT:-5432}" -U"${DB_USERNAME}" -d"${DB_DATABASE}" -c "SELECT 1;" >/dev/null 2>&1\n\
+                PG_STATUS=$?\n\
+                RETRY_COUNT=$((RETRY_COUNT + 1))\n\
+            done\n\
+            \n\
+            if [ $PG_STATUS -eq 0 ]; then\n\
+                echo "PostgreSQL is ready!"\n\
+            else\n\
+                echo "Warning: Could not connect to PostgreSQL after $MAX_RETRIES attempts. Continuing anyway..."\n\
+            fi\n\
         else\n\
-            echo "Warning: Could not connect to PostgreSQL after $MAX_RETRIES attempts. Continuing anyway..."\n\
+            echo "PostgreSQL configured but missing connection details - letting Laravel handle it"\n\
         fi\n\
     else\n\
-        echo "Using non-PostgreSQL database or missing PostgreSQL credentials. Skipping PostgreSQL connection check."\n\
+        echo "Using non-PostgreSQL database. Skipping PostgreSQL connection check."\n\
     fi\n\
     \n\
     # Handle migrations safely\n\
