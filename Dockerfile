@@ -9,13 +9,15 @@ RUN npm run build
 # Stage 2 - Backend (Laravel + PHP + Nginx)
 FROM php:8.2-fpm AS backend
 
-# Install system dependencies
+# Install system dependencies including Redis
 RUN apt-get update && apt-get install -y \
     git curl unzip libpq-dev libonig-dev libzip-dev zip \
-    libpng-dev libxml2-dev nginx supervisor \
-    libfreetype6-dev libjpeg62-turbo-dev default-mysql-client \
+    libpng-dev libxml2-dev nginx supervisor postgresql-client \
+    libfreetype6-dev libjpeg62-turbo-dev redis-server \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip gd xml \
+    && docker-php-ext-install pdo pdo_pgsql mbstring zip gd xml \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
@@ -65,6 +67,12 @@ RUN echo '[supervisord]\n\
     nodaemon=true\n\
     user=root\n\
     \n\
+    [program:redis]\n\
+    command=redis-server --bind 127.0.0.1 --port 6379\n\
+    autostart=true\n\
+    autorestart=true\n\
+    user=redis\n\
+    \n\
     [program:php-fpm]\n\
     command=php-fpm\n\
     autostart=true\n\
@@ -86,29 +94,52 @@ RUN echo '#!/bin/bash\n\
         php artisan key:generate\n\
     fi\n\
     \n\
-    # Check if we are using MySQL and wait for it to be ready\n\
-    if [ "${DB_CONNECTION}" = "mysql" ] && [ -n "${DB_HOST}" ] && [ -n "${DB_USERNAME}" ]; then\n\
-        echo "Waiting for MySQL connection..."\n\
-        MYSQL_PWD="${DB_PASSWORD}" mysql -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -e "SELECT 1" >/dev/null 2>&1\n\
-        MYSQL_STATUS=$?\n\
+    # Configure sessions based on available services\n\
+    echo "Configuring session storage..."\n\
+    if [ -n "${REDIS_URL}" ] || [ -n "${REDIS_HOST}" ]; then\n\
+        echo "Redis available - configuring Redis sessions"\n\
+        echo "" >> .env\n\
+        echo "SESSION_DRIVER=redis" >> .env\n\
+        echo "SESSION_CONNECTION=default" >> .env\n\
+    elif [ "${DB_CONNECTION}" = "pgsql" ] || [ "${DB_CONNECTION}" = "mysql" ]; then\n\
+        echo "Database available - configuring database sessions"\n\
+        echo "" >> .env\n\
+        echo "SESSION_DRIVER=database" >> .env\n\
+        echo "SESSION_CONNECTION=${DB_CONNECTION}" >> .env\n\
+        # Create sessions table if it does not exist\n\
+        php artisan session:table --force 2>/dev/null || true\n\
+    else\n\
+        echo "Using file-based sessions as fallback"\n\
+        echo "" >> .env\n\
+        echo "SESSION_DRIVER=file" >> .env\n\
+        # Ensure session directory has proper permissions\n\
+        mkdir -p /var/www/html/storage/framework/sessions\n\
+        chmod 755 /var/www/html/storage/framework/sessions\n\
+    fi\n\
+    \n\
+    # Check if we are using PostgreSQL and wait for it to be ready\n\
+    if [ "${DB_CONNECTION}" = "pgsql" ] && [ -n "${DB_HOST}" ] && [ -n "${DB_USERNAME}" ]; then\n\
+        echo "Waiting for PostgreSQL connection..."\n\
+        PGPASSWORD="${DB_PASSWORD}" psql -h"${DB_HOST}" -p"${DB_PORT:-5432}" -U"${DB_USERNAME}" -d"${DB_DATABASE}" -c "SELECT 1;" >/dev/null 2>&1\n\
+        PG_STATUS=$?\n\
         RETRY_COUNT=0\n\
         MAX_RETRIES=30\n\
         \n\
-        while [ $MYSQL_STATUS -ne 0 ] && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do\n\
-            echo "MySQL is unavailable (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES) - sleeping"\n\
+        while [ $PG_STATUS -ne 0 ] && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do\n\
+            echo "PostgreSQL is unavailable (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES) - sleeping"\n\
             sleep 5\n\
-            MYSQL_PWD="${DB_PASSWORD}" mysql -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -e "SELECT 1" >/dev/null 2>&1\n\
-            MYSQL_STATUS=$?\n\
+            PGPASSWORD="${DB_PASSWORD}" psql -h"${DB_HOST}" -p"${DB_PORT:-5432}" -U"${DB_USERNAME}" -d"${DB_DATABASE}" -c "SELECT 1;" >/dev/null 2>&1\n\
+            PG_STATUS=$?\n\
             RETRY_COUNT=$((RETRY_COUNT + 1))\n\
         done\n\
         \n\
-        if [ $MYSQL_STATUS -eq 0 ]; then\n\
-            echo "MySQL is ready!"\n\
+        if [ $PG_STATUS -eq 0 ]; then\n\
+            echo "PostgreSQL is ready!"\n\
         else\n\
-            echo "Warning: Could not connect to MySQL after $MAX_RETRIES attempts. Continuing anyway..."\n\
+            echo "Warning: Could not connect to PostgreSQL after $MAX_RETRIES attempts. Continuing anyway..."\n\
         fi\n\
     else\n\
-        echo "Using non-MySQL database or missing MySQL credentials. Skipping MySQL connection check."\n\
+        echo "Using non-PostgreSQL database or missing PostgreSQL credentials. Skipping PostgreSQL connection check."\n\
     fi\n\
     \n\
     # Handle migrations safely\n\
@@ -132,12 +163,20 @@ RUN echo '#!/bin/bash\n\
             # If migrations fail, try to continue - the app might still work\n\
             echo "Continuing with existing database state..."\n\
         fi\n\
+        \n\
+        # Run session table migration if using database sessions\n\
+        if grep -q "SESSION_DRIVER=database" .env; then\n\
+            echo "Creating sessions table for database session storage..."\n\
+            php artisan migrate --path=database/migrations --force 2>/dev/null || true\n\
+        fi\n\
     fi\n\
     \n\
     # Cache configuration\n\
     php artisan config:cache\n\
-    php artisan route:cache\n\
-    php artisan view:cache\n\
+    php artisan route:clear\n\
+    php artisan route:cache || echo "Route caching failed, continuing without cached routes"\n\
+    php artisan view:clear\n\
+    php artisan view:cache || echo "View caching failed, continuing without cached views"\n\
     \n\
     # Start supervisor\n\
     exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf' > /usr/local/bin/start.sh \
