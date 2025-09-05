@@ -86,6 +86,10 @@ RUN echo '#!/bin/bash\n\
     echo "" >> .env\n\
     echo "LOG_CHANNEL=stack" >> .env\n\
     echo "LOG_LEVEL=${LOG_LEVEL:-error}" >> .env\n\
+    echo "" >> .env\n\
+    echo "# Force HTTPS for assets" >> .env\n\
+    echo "ASSET_URL=https://pokecardarena.onrender.com" >> .env\n\
+    echo "MIX_ASSET_URL=https://pokecardarena.onrender.com" >> .env\n\
     \n\
     # Fix permissions at runtime\n\
     chown -R www-data:www-data /var/www/html/storage\n\
