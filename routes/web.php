@@ -14,7 +14,7 @@ Route::get('/', function () {
 
 /************Login*************/
 Route::get('/login', [PokemonMasterController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [PokemonMasterController::class, 'doLoginForm'])->name('login');
+Route::post('/login', [PokemonMasterController::class, 'doLoginForm'])->name('login.submit');
 /************SignUp*************/
 Route::get('/signup', [PokemonMasterController::class, 'showSignUpForm'])->name('signUp');
 Route::post('/signup', [PokemonMasterController::class, 'doSignUpForm'])->name('signUp');

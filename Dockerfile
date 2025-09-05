@@ -106,8 +106,13 @@ RUN echo '#!/bin/bash\n\
         echo "" >> .env\n\
         echo "SESSION_DRIVER=database" >> .env\n\
         echo "SESSION_CONNECTION=${DB_CONNECTION}" >> .env\n\
-        # Create sessions table if it does not exist\n\
-        php artisan session:table --force 2>/dev/null || true\n\
+        # Check if sessions table exists, create if needed\n\
+        if ! php artisan tinker --execute="echo Schema::hasTable('"'"'sessions'"'"') ? '"'"'exists'"'"' : '"'"'missing'"'"';" 2>/dev/null | grep -q "exists"; then\n\
+            echo "Creating sessions table..."\n\
+            php artisan session:table --force 2>/dev/null || true\n\
+        else\n\
+            echo "Sessions table already exists, skipping creation"\n\
+        fi\n\
     else\n\
         echo "Using file-based sessions as fallback"\n\
         echo "" >> .env\n\
@@ -166,8 +171,11 @@ RUN echo '#!/bin/bash\n\
         \n\
         # Run session table migration if using database sessions\n\
         if grep -q "SESSION_DRIVER=database" .env; then\n\
-            echo "Creating sessions table for database session storage..."\n\
-            php artisan migrate --path=database/migrations --force 2>/dev/null || true\n\
+            echo "Ensuring sessions table exists for database session storage..."\n\
+            # Check if sessions table migration exists and run it\n\
+            if ls database/migrations/*create_sessions_table.php 1> /dev/null 2>&1; then\n\
+                php artisan migrate --path=database/migrations --force 2>/dev/null || echo "Session migration already applied"\n\
+            fi\n\
         fi\n\
     fi\n\
     \n\
