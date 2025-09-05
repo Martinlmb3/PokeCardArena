@@ -15,7 +15,8 @@
   </p>
   
   <p>
-    <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite Database">
+    <img src="https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL Database">
+    <img src="https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white" alt="Playwright Testing">
     <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Support">
     <img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" alt="License">
   </p>
@@ -78,9 +79,10 @@ PokéCard Arena is a modern web application that brings the excitement of Pokém
 - **Backend**: Laravel 11 with PHP 8.2+
 - **Frontend**: React 18 with TypeScript
 - **Styling**: Tailwind CSS 3.x
-- **Database**: SQLite (development) / PostgreSQL (production)
+- **Database**: PostgreSQL (production) / SQLite (development)
 - **Full-stack**: Inertia.js for seamless SPA experience
 - **Bundling**: Vite for fast development and optimized builds
+- **Testing**: Playwright for end-to-end testing
 - **Deployment**: Docker with multi-stage builds
 
 ## 🚀 Quick Start
