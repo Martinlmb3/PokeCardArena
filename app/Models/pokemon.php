@@ -18,4 +18,15 @@ class Pokemon extends Model
         'capture_at',
         'pokedex_id'
     ];
+
+    // Relationships
+    public function pokedex()
+    {
+        return $this->belongsTo(Pokedex::class);
+    }
+
+    public function types()
+    {
+        return $this->belongsToMany(Type::class, 'pokemon_types');
+    }
 }

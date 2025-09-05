@@ -25,4 +25,10 @@ class Pokemaster extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // Relationships
+    public function pokedexes()
+    {
+        return $this->hasMany(Pokedex::class);
+    }
 }

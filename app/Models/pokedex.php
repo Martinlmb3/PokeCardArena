@@ -23,4 +23,15 @@ class Pokedex extends Model
         'nbPokemonMythic' => 0,
         'nbPokemonLeg' => 0
     ];
+
+    // Relationships
+    public function pokemaster()
+    {
+        return $this->belongsTo(Pokemaster::class);
+    }
+
+    public function pokemon()
+    {
+        return $this->hasMany(Pokemon::class);
+    }
 }
