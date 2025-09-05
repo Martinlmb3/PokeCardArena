@@ -32,8 +32,9 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interactio
 # Copy application code AFTER composer install
 COPY . .
 
-# Run composer scripts now that artisan exists
-RUN composer run-script post-autoload-dump
+# Regenerate autoloader with production optimizations and verify classes
+RUN composer dump-autoload --optimize --classmap-authoritative --no-dev \
+    && php -r "require_once 'vendor/autoload.php'; if (!class_exists('App\\Models\\Pokemaster')) { echo 'ERROR: Pokemaster class not found!'; exit(1); } echo 'SUCCESS: Pokemaster class loaded correctly';"
 
 # Install Node dependencies and build frontend
 COPY package.json package-lock.json* ./
@@ -111,6 +112,10 @@ RUN echo '#!/bin/bash\n\
     echo "Setting up fresh database..."\n\
     php artisan migrate:fresh --force || echo "Fresh migration failed, trying regular migrate..."\n\
     php artisan migrate --force || echo "Migration failed, continuing..."\n\
+    \n\
+    # Verify critical classes are loaded\n\
+    echo "Verifying class loading..."\n\
+    php -r "if (!class_exists('App\\\\Models\\\\Pokemaster')) { echo 'ERROR: Pokemaster class not found in production!'; exit(1); } echo 'SUCCESS: All classes verified';" || exit 1\n\
     \n\
     # Clear and cache config\n\
     php artisan config:clear\n\
