@@ -27,10 +27,13 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Copy composer files and install PHP dependencies
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
 
-# Copy application code
+# Copy application code AFTER composer install
 COPY . .
+
+# Run composer scripts now that artisan exists
+RUN composer run-script post-autoload-dump
 
 # Install Node dependencies and build frontend
 COPY package.json package-lock.json* ./
@@ -72,18 +75,14 @@ RUN echo '#!/bin/bash\n\
     echo "APP_TIMEZONE=UTC" >> .env\n\
     echo "" >> .env\n\
     echo "DB_CONNECTION=pgsql" >> .env\n\
-    echo "DB_HOST=${DB_HOST}" >> .env\n\
-    echo "DB_PORT=${DB_PORT:-5432}" >> .env\n\
-    echo "DB_DATABASE=${DB_DATABASE}" >> .env\n\
-    echo "DB_USERNAME=${DB_USERNAME}" >> .env\n\
-    echo "DB_PASSWORD=${DB_PASSWORD}" >> .env\n\
+    echo "DATABASE_URL=${DATABASE_URL}" >> .env\n\
     echo "" >> .env\n\
     echo "SESSION_DRIVER=database" >> .env\n\
     echo "SESSION_LIFETIME=120" >> .env\n\
     echo "SESSION_ENCRYPT=false" >> .env\n\
     echo "" >> .env\n\
     echo "QUEUE_CONNECTION=database" >> .env\n\
-    echo "CACHE_DRIVER=database" >> .env\n\
+    echo "CACHE_STORE=database" >> .env\n\
     echo "" >> .env\n\
     echo "LOG_CHANNEL=stack" >> .env\n\
     echo "LOG_LEVEL=error" >> .env\n\
