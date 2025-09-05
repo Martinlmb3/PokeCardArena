@@ -64,7 +64,7 @@ RUN echo '<VirtualHost *:80>\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
     </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-# Startup script
+# Startup script with proper environment variable handling
 RUN echo '#!/bin/bash\n\
     echo "Creating .env file from environment variables"\n\
     echo "APP_NAME=${APP_NAME:-PokeCardArena}" > .env\n\
@@ -85,7 +85,7 @@ RUN echo '#!/bin/bash\n\
     echo "CACHE_STORE=database" >> .env\n\
     echo "" >> .env\n\
     echo "LOG_CHANNEL=stack" >> .env\n\
-    echo "LOG_LEVEL=error" >> .env\n\
+    echo "LOG_LEVEL=${LOG_LEVEL:-error}" >> .env\n\
     \n\
     # Fix permissions at runtime\n\
     chown -R www-data:www-data /var/www/html/storage\n\
@@ -99,18 +99,21 @@ RUN echo '#!/bin/bash\n\
     exit 1\n\
     fi\n\
     \n\
-    # Wait for database to be ready and run migrations\n\
-    until php artisan migrate --force; do\n\
-    echo "Retrying migrations in 5s..."\n\
+    # Wait for database\n\
+    echo "Waiting for database..."\n\
     sleep 5\n\
-    done\n\
     \n\
-    # Cache config/routes\n\
+    # Run migrations\n\
+    echo "Running migrations..."\n\
+    php artisan migrate --force || echo "Migration failed, continuing..."\n\
+    \n\
+    # Clear and cache config\n\
     php artisan config:clear\n\
     php artisan config:cache\n\
     php artisan route:cache\n\
     \n\
     # Start Apache\n\
+    echo "Starting Apache..."\n\
     apache2-foreground\n\
     ' > /usr/local/bin/start.sh && chmod +x /usr/local/bin/start.sh
 
