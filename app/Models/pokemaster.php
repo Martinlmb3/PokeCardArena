@@ -11,7 +11,7 @@ class Pokemaster extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'password', 'email', 'profile'];
+    protected $fillable = ['name', 'password', 'email', 'profile', 'xp', 'title'];
 
     protected $hidden = [
         'password',

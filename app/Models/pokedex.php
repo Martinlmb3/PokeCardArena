@@ -11,7 +11,7 @@ class Pokedex extends Model
     use HasFactory;
 
     protected $fillable = [
-        'trainer_id',
+        'pokemaster_id',
         'pokemon_id',
         'nbPokemon',
         'nbPokemonMythic', 
