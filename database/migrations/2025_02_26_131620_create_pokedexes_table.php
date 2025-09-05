@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('nbPokemonLeg');
             $table->integer('xp')->default(0);
             $table->foreignId('trainer_id')->references('id')->on('trainers')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('pokemon_id')->references('id')->on('pokemon')->onUpdate('cascade')->onDelete('cascade');
+            $table->unsignedBigInteger('pokemon_id')->nullable();
         });
     }
 

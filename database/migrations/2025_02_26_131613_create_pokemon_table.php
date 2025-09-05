@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('is_legendary', 30);
             $table->string('is_mythical', 30);
             $table->date('capture_at');
-            $table->foreignId('pokedex_id')->references('id')->on('pokedexes')->onUpdate('cascade')->onDelete('cascade');
+            $table->unsignedBigInteger('pokedex_id')->nullable();
         });
     }
 
