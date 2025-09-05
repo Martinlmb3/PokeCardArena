@@ -131,7 +131,7 @@ export default function Signup({ errors }: SignupProps) {
                         </div>
                         <button 
                             type="submit" 
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 disabled:opacity-50"
+                            className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:transform-none"
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? 'Creating Account...' : 'Create Account'}
