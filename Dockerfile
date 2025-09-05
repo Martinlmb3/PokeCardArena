@@ -80,8 +80,17 @@ RUN echo '#!/bin/bash\n\
     echo "APP_URL=${APP_URL}" >> .env\n\
     echo "" >> .env\n\
     echo "DB_CONNECTION=${DB_CONNECTION:-pgsql}" >> .env\n\
-    echo "DB_URL=${DATABASE_URL}" >> .env\n\
+    echo "DATABASE_URL=${DATABASE_URL}" >> .env\n\
+    echo "QUEUE_CONNECTION=database" >> .env\n\
+    echo "SESSION_DRIVER=database" >> .env\n\
+    echo "CACHE_STORE=database" >> .env\n\
     fi\n\
+    \n\
+    # Fix permissions at runtime\n\
+    chown -R www-data:www-data /var/www/html/storage\n\
+    chown -R www-data:www-data /var/www/html/bootstrap/cache\n\
+    chmod -R 775 /var/www/html/storage\n\
+    chmod -R 775 /var/www/html/bootstrap/cache\n\
     \n\
     # Generate app key if not set\n\
     if ! grep -q "APP_KEY=base64:" .env; then\n\
