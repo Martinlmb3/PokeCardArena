@@ -21,3 +21,26 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Shell scripts
+*.sh
+
+# Playwright
+playwright.config.ts
+playwright-report/
+test-results/
+tests/playwright/
+
+# Build and deploy scripts
+build.sh
+deploy-fix.sh
+render-deploy.sh
+composer-updated.json
+verify-bootstrap.php
+verify-docker.php
+
+# Claude Code
+.claude/
+
+# Deployment docs (optional - uncomment if you don't want it tracked)
+# DEPLOYMENT.md
