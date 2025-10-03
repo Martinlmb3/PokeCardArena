@@ -21,34 +21,36 @@ export default function Layout({ children }: LayoutProps) {
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         <div className="flex h-16 items-center justify-between">
                             <div className="flex items-center">
-                                <div className="shrink-0">
+                                <div className="flex-shrink-0">
                                     <Link href="/" className="hover:opacity-75 transition-opacity duration-150">
-                                        <img className="size-15" src="/images/logos/pokécard-logo.png" alt="pokécard-logo" />
+                                        <img className="h-12 w-12 object-contain" src="/images/logos/pokécard-logo.png" alt="pokécard-logo"/>
                                     </Link>
                                 </div>
-                                <div className="hidden md:block">
-                                    <div className="ml-10 flex items-baseline space-x-4">
-                                        <Link
-                                            href="/pokedex"
-                                            className="rounded-md bg-red-900 px-3 py-2 text-sm font-medium text-white"
-                                            aria-current="page"
-                                        >
-                                            Pokédex
-                                        </Link>
-                                        <Link
-                                            href="/pokemonCenter"
-                                            className="rounded-md px-3 py-2 text-sm font-medium hover:bg-red-900 text-white no-underline"
-                                        >
-                                            Pokémon Center
-                                        </Link>
-                                        <Link
-                                            href="/myPokemon"
-                                            className="rounded-md px-3 py-2 text-sm font-medium hover:bg-red-900 text-white no-underline"
-                                        >
-                                            My Pokémon
-                                        </Link>
+                                {auth?.user && (
+                                    <div className="hidden md:block">
+                                        <div className="ml-10 flex items-baseline space-x-4">
+                                            <Link
+                                                href="/pokedex"
+                                                className="rounded-md bg-red-900 px-3 py-2 text-sm font-medium text-white"
+                                                aria-current="page"
+                                            >
+                                                Pokédex
+                                            </Link>
+                                            <Link
+                                                href="/pokemonCenter"
+                                                className="rounded-md px-3 py-2 text-sm font-medium hover:bg-red-900 text-white no-underline"
+                                            >
+                                                Pokémon Center
+                                            </Link>
+                                            <Link
+                                                href="/myPokemon"
+                                                className="rounded-md px-3 py-2 text-sm font-medium hover:bg-red-900 text-white no-underline"
+                                            >
+                                                My Pokémon
+                                            </Link>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                             <div className="hidden md:block">
                                 <div className="ml-4 flex items-center md:ml-6 space-x-4">
@@ -60,7 +62,7 @@ export default function Layout({ children }: LayoutProps) {
                                             >
                                                 <span className="absolute -inset-1.5"></span>
                                                 <span className="sr-only">Your profile</span>
-                                                <img className="size-8 rounded-full" src="/images/profiles/pp.png" alt="" />
+                                                <img className="size-8 rounded-full" src={auth?.user?.profile || "/images/profiles/pp.png"} alt="" />
                                             </Link>
                                             <form onSubmit={handleLogout}>
                                                 <button
@@ -109,59 +111,127 @@ export default function Layout({ children }: LayoutProps) {
                             </div>
                         </div>
                     </div>
-                    <div className="md:hidden" id="mobile-menu">
-                        <div className="space-y-1 px-2 pt-2 pb-3 sm:px-3">
-                            <Link
-                                href="/pokedex"
-                                className="block rounded-md bg-red-900 px-3 py-2 text-base font-medium text-white"
-                                aria-current="page"
-                            >
-                                Pokédex
-                            </Link>
-                            <Link
-                                href="/myPokemon"
-                                className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white no-underline"
-                            >
-                                My Pokémon
-                            </Link>
-                            <Link
-                                href="/pokemonCenter"
-                                className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
-                            >
-                                Pokémon Center
-                            </Link>
-                            {auth?.user && (
-                                <>
-                                    <Link
-                                        href="/profile"
-                                        className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
+                    {auth?.user && (
+                        <div className="md:hidden" id="mobile-menu">
+                            <div className="space-y-1 px-2 pt-2 pb-3 sm:px-3">
+                                <Link
+                                    href="/pokedex"
+                                    className="block rounded-md bg-red-900 px-3 py-2 text-base font-medium text-white"
+                                    aria-current="page"
+                                >
+                                    Pokédex
+                                </Link>
+                                <Link
+                                    href="/myPokemon"
+                                    className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white no-underline"
+                                >
+                                    My Pokémon
+                                </Link>
+                                <Link
+                                    href="/pokemonCenter"
+                                    className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
+                                >
+                                    Pokémon Center
+                                </Link>
+                                <Link
+                                    href="/profile"
+                                    className="block rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
+                                >
+                                    Your Profile
+                                </Link>
+                                <form onSubmit={handleLogout}>
+                                    <button
+                                        type="submit"
+                                        className="block w-full text-left rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
                                     >
-                                        Your Profile
-                                    </Link>
-                                    <form onSubmit={handleLogout}>
-                                        <button
-                                            type="submit"
-                                            className="block w-full text-left rounded-md px-3 py-2 text-base font-medium hover:bg-red-900 text-white"
-                                        >
-                                            Sign out
-                                        </button>
-                                    </form>
-                                </>
-                            )}
+                                        Sign out
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </nav>
             </header>
             {children}
-            <footer className="block bottom-0 w-full bg-white" style={{ color: '#6c757d' }}>
-                <div className="max-w-7xl mx-auto px-4 py-2">
-                    <ul className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 border-b pb-2">
-                        <li className="nav-link text-muted hover:text-red-900 cursor-pointer transition-colors duration-200">Home</li>
-                        <li className="nav-link text-muted hover:text-red-900 cursor-pointer transition-colors duration-200">Pay To Win</li>
-                        <li className="nav-link text-muted hover:text-red-900 cursor-pointer transition-colors duration-200">FAQs</li>
-                        <li className="nav-link text-muted hover:text-red-900 cursor-pointer transition-colors duration-200">About</li>
-                    </ul>
-                    <p className="text-center text-muted my-2 text-xs sm:text-sm">©PokéCard Arena 2025</p>
+            <footer className="bg-red-900 text-white w-full">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                        {/* Brand Section */}
+                        <div className="md:col-span-2">
+                            <Link href="/" className="hover:opacity-75 transition-opacity duration-150">
+                                <h3 className="text-3xl font-bold mb-4 text-white">PokéCard Arena</h3>
+                            </Link>
+                            <p className="text-red-100 mb-6 max-w-md leading-relaxed">
+                                The place where you catch 'em all, daily! Build your dream Pokemon deck without spending a dime through daily looting adventures.
+                            </p>
+                        </div>
+
+                        {/* Quick Links */}
+                        <div>
+                            <h4 className="text-lg font-semibold mb-4 text-white">Quick Links</h4>
+                            <ul className="space-y-3">
+                                <li>
+                                    <Link href="/" className="text-red-100 hover:text-white transition-colors text-sm block py-1">
+                                        Home
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/pokedex" className="text-red-100 hover:text-white transition-colors text-sm block py-1">
+                                        Pokédex
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/pokemonCenter" className="text-red-100 hover:text-white transition-colors text-sm block py-1">
+                                        Pokémon Center
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/myPokemon" className="text-red-100 hover:text-white transition-colors text-sm block py-1">
+                                        My Pokémon
+                                    </Link>
+                                </li>
+                            </ul>
+                        </div>
+
+                        {/* Support */}
+                        <div>
+                            <h4 className="text-lg font-semibold mb-4 text-white">Support</h4>
+                            <ul className="space-y-3">
+                                <li>
+                                    <Link href="/help" className="text-red-100 hover:text-white transition-colors text-sm block py-1">
+                                        Help Center
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/contact" className="text-red-100 hover:text-white transition-colors text-sm block py-1">
+                                        Contact Us
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/privacy" className="text-red-100 hover:text-white transition-colors text-sm block py-1">
+                                        Privacy Policy
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/terms" className="text-red-100 hover:text-white transition-colors text-sm block py-1">
+                                        Terms of Service
+                                    </Link>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {/* Bottom Section */}
+                    <div className="border-t border-red-800 mt-8 pt-8">
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <p className="text-red-100 text-sm">
+                                © {new Date().getFullYear()} PokéCard Arena. All rights reserved.
+                            </p>
+                            <p className="text-red-100 text-sm">
+                                Made with ❤️ for Pokemon trainers everywhere
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </footer>
         </div>

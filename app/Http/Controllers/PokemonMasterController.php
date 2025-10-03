@@ -5,9 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\SignUpRequest;
 use App\Models\Pokemaster;
-use App\Models\Trainer;
-use App\Models\pokemon;
-use App\Models\pokedex;
+use App\Models\Pokemon;
+use App\Models\Pokedex;
 use App\Services\PokemonApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -64,24 +63,49 @@ class PokemonMasterController extends Controller
     public function update(Request $request)
     {
         $user = auth()->user();
-        
+
+
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'sometimes|required|string|max:255',
             'email' => [
-                'required', 
-                'email', 
+                'sometimes',
+                'required',
+                'email',
                 Rule::unique('pokemasters')->ignore($user->id)
             ],
             'password' => 'nullable|min:6|confirmed',
+            'profilePicture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Update name and email
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
+        // Update name and email if provided
+        if (isset($validated['name'])) {
+            $user->name = $validated['name'];
+        }
+        if (isset($validated['email'])) {
+            $user->email = $validated['email'];
+        }
 
         // Update password if provided
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
+        }
+
+        // Handle profile picture upload
+        if ($request->hasFile('profilePicture')) {
+            $file = $request->file('profilePicture');
+            $filename = time() . '_' . $user->id . '.' . $file->getClientOriginalExtension();
+
+            // Ensure the directory exists
+            $directory = public_path('images/profiles');
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
+            // Store in public/images/profiles/ directory
+            $file->move($directory, $filename);
+
+            // Update user profile with new filename
+            $user->profile = '/images/profiles/' . $filename;
         }
 
         $user->save();
@@ -93,44 +117,27 @@ class PokemonMasterController extends Controller
     {
         $user = auth()->user();
         
-        // Get trainer data (assuming the user is linked to a trainer)
-        $trainer = Trainer::where('email', $user->email)->first();
-        
-        if (!$trainer) {
-            // If no trainer exists, create one or use default values
-            $userData = [
-                'name' => $user->name,
-                'title' => 'Novice Trainer',
-                'experience' => 0,
-                'experienceToNext' => 1500,
-                'totalPokemon' => 0,
-                'mythicalCount' => 0,
-                'legendaryCount' => 0,
-                'profileImage' => $user->profile ?? '/images/profiles/pp.png'
-            ];
-        } else {
-            // Get pokemon counts from the pokemon table linked via pokedexes
-            $pokemonCounts = DB::table('pokemon')
-                ->join('pokedexes', 'pokemon.pokedex_id', '=', 'pokedexes.id')
-                ->where('pokedexes.trainer_id', $trainer->id)
-                ->select(
-                    DB::raw('COUNT(*) as total'),
-                    DB::raw('SUM(CASE WHEN pokemon.is_mythical = "true" THEN 1 ELSE 0 END) as mythical'),
-                    DB::raw('SUM(CASE WHEN pokemon.is_legendary = "true" THEN 1 ELSE 0 END) as legendary')
-                )
-                ->first();
+        // Get pokemon counts from the pokemon table linked via pokedexes
+        $pokemonCounts = DB::table('pokemon')
+            ->join('pokedexes', 'pokemon.pokedex_id', '=', 'pokedexes.id')
+            ->where('pokedexes.pokemaster_id', $user->id)
+            ->select(
+                DB::raw('COUNT(*) as total'),
+                DB::raw("SUM(CASE WHEN pokemon.is_mythical = 'true' THEN 1 ELSE 0 END) as mythical"),
+                DB::raw("SUM(CASE WHEN pokemon.is_legendary = 'true' THEN 1 ELSE 0 END) as legendary")
+            )
+            ->first();
 
-            $userData = [
-                'name' => $trainer->name,
-                'title' => $trainer->title,
-                'experience' => $trainer->xp ?? 0,
-                'experienceToNext' => 1500 - ($trainer->xp ?? 0),
-                'totalPokemon' => $pokemonCounts->total ?? 0,
-                'mythicalCount' => $pokemonCounts->mythical ?? 0,
-                'legendaryCount' => $pokemonCounts->legendary ?? 0,
-                'profileImage' => $trainer->profile ?? '/images/profiles/pp.png'
-            ];
-        }
+        $userData = [
+            'name' => $user->name,
+            'title' => $user->title ?? 'Rookie Trainer',
+            'experience' => $user->xp ?? 0,
+            'experienceToNext' => 1500 - ($user->xp ?? 0),
+            'totalPokemon' => $pokemonCounts->total ?? 0,
+            'mythicalCount' => $pokemonCounts->mythical ?? 0,
+            'legendaryCount' => $pokemonCounts->legendary ?? 0,
+            'profileImage' => $user->profile ?? '/images/profiles/pp.png'
+        ];
 
         return Inertia::render('Pokedex', [
             'user' => $userData
@@ -140,23 +147,18 @@ class PokemonMasterController extends Controller
     public function pokemonCenter()
     {
         $user = auth()->user();
-        $trainer = Trainer::where('email', $user->email)->first();
-        
-        if (!$trainer) {
-            // Create trainer if doesn't exist
-            $trainer = Trainer::create([
-                'name' => $user->name,
-                'email' => $user->email,
-                'password' => $user->password,
-                'title' => 'Novice Trainer',
-                'xp' => 0
+        // Initialize default values if not set
+        if (!$user->xp || !$user->title) {
+            $user->update([
+                'xp' => $user->xp ?? 0,
+                'title' => $user->title ?? 'Rookie Trainer'
             ]);
         }
 
         // Check how many pokemon caught today
         $today = Carbon::today();
-        $pokemonCaughtToday = pokemon::join('pokedexes', 'pokemon.pokedex_id', '=', 'pokedexes.id')
-            ->where('pokedexes.trainer_id', $trainer->id)
+        $pokemonCaughtToday = Pokemon::join('pokedexes', 'pokemon.pokedex_id', '=', 'pokedexes.id')
+            ->where('pokedexes.pokemaster_id', $user->id)
             ->whereDate('pokemon.capture_at', $today)
             ->count();
 
@@ -175,16 +177,12 @@ class PokemonMasterController extends Controller
     public function catchPokemon(Request $request)
     {
         $user = auth()->user();
-        $trainer = Trainer::where('email', $user->email)->first();
-
-        if (!$trainer) {
-            return response()->json(['error' => 'Trainer not found'], 404);
-        }
+        // User is already authenticated pokemaster
 
         // Check daily limit
         $today = Carbon::today();
-        $pokemonCaughtToday = pokemon::join('pokedexes', 'pokemon.pokedex_id', '=', 'pokedexes.id')
-            ->where('pokedexes.trainer_id', $trainer->id)
+        $pokemonCaughtToday = Pokemon::join('pokedexes', 'pokemon.pokedex_id', '=', 'pokedexes.id')
+            ->where('pokedexes.pokemaster_id', $user->id)
             ->whereDate('pokemon.capture_at', $today)
             ->count();
 
@@ -205,10 +203,10 @@ class PokemonMasterController extends Controller
         ]);
 
         // Find or create pokedex entry for this trainer
-        $pokedex = pokedex::firstOrCreate(
-            ['trainer_id' => $trainer->id],
+        $pokedex = Pokedex::firstOrCreate(
+            ['pokemaster_id' => $user->id],
             [
-                'trainer_id' => $trainer->id,
+                'pokemaster_id' => $user->id,
                 'nbPokemon' => 0,
                 'nbPokemonMythic' => 0,
                 'nbPokemonLeg' => 0,
@@ -217,7 +215,7 @@ class PokemonMasterController extends Controller
         );
 
         // Save pokemon to database
-        $pokemon = pokemon::create([
+        $pokemon = Pokemon::create([
             'name' => $pokemonData['name'],
             'image' => $pokemonData['image'],
             'is_legendary' => $pokemonData['is_legendary'] ? 'true' : 'false',
@@ -246,7 +244,7 @@ class PokemonMasterController extends Controller
         if ($pokemonData['is_legendary']) $xpGain += 50;
         if ($pokemonData['is_mythical']) $xpGain += 100;
         
-        $trainer->increment('xp', $xpGain);
+        $user->increment('xp', $xpGain);
 
         // For Inertia, we need to redirect back with success data
         return redirect()->back()->with([
@@ -260,14 +258,8 @@ class PokemonMasterController extends Controller
     public function myPokemon()
     {
         $user = auth()->user();
-        $trainer = null;
-
-        if ($user) {
-            $trainer = Trainer::where('email', $user->email)->first();
-        }
-
-        if (!$trainer) {
-            // If no trainer or not authenticated, show empty pokedex
+        if (!$user) {
+            // If not authenticated, show empty pokedex
             return Inertia::render('MyPokemon', [
                 'userPokemon' => [],
                 'totalCaught' => 0,
@@ -279,7 +271,7 @@ class PokemonMasterController extends Controller
         // Get all Pokemon caught by this trainer
         $userPokemon = DB::table('pokemon')
             ->join('pokedexes', 'pokemon.pokedex_id', '=', 'pokedexes.id')
-            ->where('pokedexes.trainer_id', $trainer->id)
+            ->where('pokedexes.pokemaster_id', $user->id)
             ->select(
                 'pokemon.*',
                 DB::raw('DATE(pokemon.capture_at) as capture_date')
@@ -308,7 +300,7 @@ class PokemonMasterController extends Controller
             'totalCaught' => $totalCaught,
             'totalMythical' => $totalMythical,
             'totalLegendary' => $totalLegendary,
-            'trainerName' => $trainer->name
+            'trainerName' => $user->name
         ]);
     }
 

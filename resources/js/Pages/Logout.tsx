@@ -21,7 +21,7 @@ export default function Logout() {
                     <p className="text-sm text-gray-600 mt-2">Redirecting you to the home page...</p>
                     <div className="mt-4">
                         <div className="spinner-border text-primary" role="status">
-                            <span className="sr-only">Loading...</span>
+                            <span className="sr-only">Loading....</span>
                         </div>
                     </div>
                 </section>

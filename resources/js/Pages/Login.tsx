@@ -31,11 +31,11 @@ export default function Login({ errors }: LoginProps) {
             <main className="bg-gray-200 p-5">
                 <div className="bg-white mx-auto max-w-7xl px-8 py-6 w-150 mt-4 sm:px-6 lg:px-8 shadow-xl">
                     <form onSubmit={handleSubmit(onSubmit)}>
-                        <div className="form-group">
-                            <label htmlFor="email">Email</label>
+                        <div className="mb-4">
+                            <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">Email</label>
                             <input 
                                 type="email" 
-                                className={`form-control ${formErrors.email || errors?.email ? 'is-invalid' : ''}`}
+                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500 ${formErrors.email || errors?.email ? 'border-red-500' : 'border-gray-300'}`}
                                 id="email" 
                                 placeholder="Enter email" 
                                 {...register('email', { 
@@ -46,20 +46,20 @@ export default function Login({ errors }: LoginProps) {
                                     }
                                 })}
                             />
-                            <small id="emailHelp" className="form-text text-muted">
+                            <small className="text-gray-600 text-xs">
                                 We'll never share your email with anyone else.
                             </small>
                             {(formErrors.email || errors?.email) && (
-                                <div className="text-red-500 text-sm">
+                                <div className="text-red-500 text-sm mt-1">
                                     {formErrors.email?.message || errors?.email}
                                 </div>
                             )}
                         </div>
-                        <div className="form-group">
-                            <label htmlFor="password">Password</label>
+                        <div className="mb-4">
+                            <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">Password</label>
                             <input 
                                 type="password" 
-                                className={`form-control ${formErrors.password || errors?.password ? 'is-invalid' : ''}`}
+                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500 ${formErrors.password || errors?.password ? 'border-red-500' : 'border-gray-300'}`}
                                 id="password" 
                                 placeholder="Password" 
                                 {...register('password', { 
@@ -67,25 +67,25 @@ export default function Login({ errors }: LoginProps) {
                                 })}
                             />
                             {(formErrors.password || errors?.password) && (
-                                <div className="text-red-500 text-sm">
+                                <div className="text-red-500 text-sm mt-1">
                                     {formErrors.password?.message || errors?.password}
                                 </div>
                             )}
                         </div>
-                        <div className="form-check">
+                        <div className="flex items-center mb-4">
                             <input 
                                 type="checkbox" 
-                                className="form-check-input" 
+                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
                                 id="remember"
                                 {...register('remember')}
                             />
-                            <label className="form-check-label" htmlFor="remember">
+                            <label className="ml-2 text-sm text-gray-700" htmlFor="remember">
                                 Remember me
                             </label>
                         </div>
-                        <button 
-                            type="submit" 
-                            className="btn btn-primary mt-3"
+                        <button
+                            type="submit"
+                            className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:transform-none"
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? 'Submitting...' : 'Login'}

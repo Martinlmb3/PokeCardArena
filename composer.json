@@ -38,6 +38,13 @@
         }
     },
     "scripts": {
+        "deploy": [
+            "@php -r \"file_exists('bootstrap/cache') || mkdir('bootstrap/cache', 0755, true);\"",
+            "@composer dump-autoload --optimize --classmap-authoritative",
+            "@php artisan package:discover --ansi",
+            "@php artisan config:cache",
+            "@php artisan route:cache"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

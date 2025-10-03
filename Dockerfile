@@ -25,15 +25,19 @@ RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd zip
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy composer files and install PHP dependencies
+# Copy composer files and install PHP dependencies (without classmap initially)
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
+RUN composer install --no-dev --no-scripts --no-interaction
 
 # Copy application code AFTER composer install
 COPY . .
 
-# Run composer scripts now that artisan exists
-RUN composer run-script post-autoload-dump
+# Regenerate autoloader with production optimizations
+# Use classmap-authoritative to ensure all classes are properly mapped
+RUN composer dump-autoload --optimize --classmap-authoritative --no-dev
+
+# Verify that critical classes can be loaded
+RUN php verify-docker.php
 
 # Install Node dependencies and build frontend
 COPY package.json package-lock.json* ./
@@ -64,7 +68,7 @@ RUN echo '<VirtualHost *:80>\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
     </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-# Startup script
+# Startup script with proper environment variable handling
 RUN echo '#!/bin/bash\n\
     echo "Creating .env file from environment variables"\n\
     echo "APP_NAME=${APP_NAME:-PokeCardArena}" > .env\n\
@@ -85,7 +89,11 @@ RUN echo '#!/bin/bash\n\
     echo "CACHE_STORE=database" >> .env\n\
     echo "" >> .env\n\
     echo "LOG_CHANNEL=stack" >> .env\n\
-    echo "LOG_LEVEL=error" >> .env\n\
+    echo "LOG_LEVEL=${LOG_LEVEL:-error}" >> .env\n\
+    echo "" >> .env\n\
+    echo "# Force HTTPS for assets" >> .env\n\
+    echo "ASSET_URL=https://pokecardarena.onrender.com" >> .env\n\
+    echo "MIX_ASSET_URL=https://pokecardarena.onrender.com" >> .env\n\
     \n\
     # Fix permissions at runtime\n\
     chown -R www-data:www-data /var/www/html/storage\n\
@@ -99,18 +107,26 @@ RUN echo '#!/bin/bash\n\
     exit 1\n\
     fi\n\
     \n\
-    # Wait for database to be ready and run migrations\n\
-    until php artisan migrate --force; do\n\
-    echo "Retrying migrations in 5s..."\n\
+    # Wait for database\n\
+    echo "Waiting for database..."\n\
     sleep 5\n\
-    done\n\
     \n\
-    # Cache config/routes\n\
+    # Fresh database setup - drop all tables and recreate\n\
+    echo "Setting up fresh database..."\n\
+    php artisan migrate:fresh --force || echo "Fresh migration failed, trying regular migrate..."\n\
+    php artisan migrate --force || echo "Migration failed, continuing..."\n\
+    \n\
+    # Verify critical classes are loaded\n\
+    echo "Verifying class loading..."\n\
+    php verify-docker.php || exit 1\n\
+    \n\
+    # Clear and cache config\n\
     php artisan config:clear\n\
     php artisan config:cache\n\
     php artisan route:cache\n\
     \n\
     # Start Apache\n\
+    echo "Starting Apache..."\n\
     apache2-foreground\n\
     ' > /usr/local/bin/start.sh && chmod +x /usr/local/bin/start.sh
 

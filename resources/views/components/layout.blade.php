@@ -17,7 +17,7 @@
         <div class="flex items-center">
             <div class="shrink-0">
             <a href="/" class="hover:opacity-75 transition-opacity duration-150">
-                <img class="size-15" src="{{ asset('images/logos/pokécard-logo.png') }}" alt="pokécard-logo">
+                <img class="size-20" src="{{ asset('images/logos/pokécard-logo.png') }}" alt="pokécard-logo">
             </a>
             </div>
             <div class="hidden md:block">
